@@ -17,7 +17,6 @@ function Logout() {
         console.error("Logout failed:", err);
       } finally {
         localStorage.removeItem("sellerIon");
-
         navigate("/user/home", { replace: true });
       }
     };

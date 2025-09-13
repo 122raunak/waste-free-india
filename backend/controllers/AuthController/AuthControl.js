@@ -61,12 +61,12 @@ getLogin = (req, res, next) => {
 
 getLogout = (req, res) => {
   req.logout((err) => {
-    if (err) return res.status(500).json({ message: "Logout error" });
+    if (err) return res.status(200).json({ message: "Logout error" });
 
     req.session.destroy(() => {
       res.clearCookie("connect.sid");
       console.log(" Logged out, redirecting... again");
-      res.redirect(`${process.env.FRONTEND_URL}/user/home`);
+      res.status(200).json({ message: "Logged out" });
     });
   });
 };

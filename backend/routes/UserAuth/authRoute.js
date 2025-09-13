@@ -88,7 +88,7 @@ router.post("/register", getRegister);
 router.post("/login", getLogin);
 
 router.get("/check", isLoggedInUser, (req, res) => {
-  console.log("🔍 /check hit. User session:", req.user);
+  console.log(" /check hit. User session:", req.user);
   res.status(200).json({ user: req.user });
 });
 router.get("/logout", getLogout);
