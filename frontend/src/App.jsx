@@ -6,8 +6,6 @@ import Home from "./pages/Home/Home";
 
 import UserLogin from "./pages/User/UserLogin/UserLogin";
 import UserSignup from "./pages/User/UserSignup/UserSignup";
-import SellerLogin from "./pages/Seller/SellerLogin/SellerLogin";
-import SellerSignup from "./pages/Seller/SellerSignup/SellerSignup";
 import SellingPage from "./pages/Selling page/SellingPage";
 import Chatbot from "./pages/Chatbot/Chatbot";
 import logo from "../public/Logo/logo.png"; // adjust path if needed
@@ -17,6 +15,10 @@ import UserProfile from "./pages/User/UserProfile/UserProfile";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 import Logout from "./pages/User/LogOut/Logout";
 import Navbar from "./components/Navbar/Navbar";
+import BuyerLogin from "./pages/Seller/SellerLogin/BuyerLogin";
+import BuyerSignup from "./pages/Seller/SellerSignup/BuyerSignup";
+import BuyerProfile from "./pages/Seller/Profile/Profile";
+import BuyerLogout from "./pages/Seller/Logout/Logout";
 
 function App() {
   return (
@@ -40,8 +42,8 @@ function App() {
             <Route path="/" element={<Start />} />
             <Route path="/user/login" element={<UserLogin />} />
             <Route path="/user/signup" element={<UserSignup />} />
-            <Route path="/seller/login" element={<SellerLogin />} />
-            <Route path="/seller/signup" element={<SellerSignup />} />
+            <Route path="/buyer/login" element={<BuyerLogin />} />
+            <Route path="/buyer/signup" element={<BuyerSignup />} />
 
             {/* nested rotes with /user/roouteName */}
             <Route path="/user" element={<Navbar />}>
@@ -66,6 +68,11 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+            </Route>
+            {/*  nested routes for buyer /buyer/profile */}
+            <Route path="/buyer" element={<Navbar />}>
+              <Route path="profile" element={<BuyerProfile />} />
+              <Route path="logout" element={<BuyerLogout />} />
             </Route>
           </Routes>
         </div>

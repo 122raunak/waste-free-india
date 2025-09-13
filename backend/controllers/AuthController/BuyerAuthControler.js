@@ -47,7 +47,7 @@ getLogin = (req, res, next) => {
     req.login(user, (err) => {
       if (err) return res.status(500).json({ message: err.message });
 
-      return res.status(200).json({
+      return res.status(201).json({
         message: "Login successful",
         user: {
           id: user._id,

@@ -8,7 +8,7 @@ const Navbar = () => {
   const getLinkClasses = (isActive) =>
     isActive ? "text-[#81E68D] font-semibold" : "text-black";
 
-  const { sellerIon } = useContext(AppContext);
+  const { sellerIon, BuyerIcon } = useContext(AppContext);
 
   useEffect(() => {
     console.log("form lgoin page", sellerIon);
@@ -16,9 +16,17 @@ const Navbar = () => {
       localStorage.setItem("sellerIon", sellerIon);
     }
   }, []);
+  useEffect(() => {
+    console.log("form lgoin page BuyerIcon", BuyerIcon);
+    if (BuyerIcon) {
+      localStorage.setItem("BuyerIcon", BuyerIcon);
+    }
+  }, []);
 
   const localData = localStorage.getItem("sellerIon");
   console.log("value of localdata", localData);
+  const localData2 = localStorage.getItem("BuyerIcon");
+  console.log("value of localdata", localData2);
 
   return (
     <>
@@ -49,6 +57,7 @@ const Navbar = () => {
 
         <div className={`${localData ? "block" : "hidden"}`}>
           <NavLink
+            end
             to="/user/sellingpage"
             className={({ isActive }) => getLinkClasses(isActive)}
           >
@@ -56,8 +65,19 @@ const Navbar = () => {
           </NavLink>
         </div>
 
+        <div className={`${localData2 ? "block" : "hidden"}`}>
+          <NavLink
+            end
+            to="/user/sellingpage"
+            className={({ isActive }) => getLinkClasses(isActive)}
+          >
+            <Icons icon={Recycle} title="Buy Waste" />
+          </NavLink>
+        </div>
+
         <NavLink
-          to="/user/profile"
+          to={`/${localData2 ? "buyer" : "user"}/profile`}
+          end
           className={({ isActive }) => getLinkClasses(isActive)}
         >
           <Icons icon={User} title="Profile" />

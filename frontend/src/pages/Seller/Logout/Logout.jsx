@@ -9,14 +9,14 @@ function BuyerLogout() {
     const doLogout = async () => {
       try {
         await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/user/auth/logout`,
+          `${import.meta.env.VITE_BACKEND_URL}/buyer/auth/logout`,
           { withCredentials: true }
         );
         console.log("Logged out successfully");
       } catch (err) {
         console.error("Logout failed:", err);
       } finally {
-        localStorage.removeItem("sellerIon");
+        localStorage.removeItem("BuyerIcon");
         navigate("/user/home", { replace: true });
       }
     };
