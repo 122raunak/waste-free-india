@@ -8,7 +8,8 @@ import UserLogin from "./pages/User/UserLogin/UserLogin";
 import UserSignup from "./pages/User/UserSignup/UserSignup";
 import SellingPage from "./pages/Selling page/SellingPage";
 import Chatbot from "./pages/Chatbot/Chatbot";
-import logo from "../public/Logo/logo.png"; // adjust path if needed
+import logo from "../public/Logo/logoAnimation.gif"; // adjust path if needed
+import logoimg from "../public/Logo/logo.png"; // adjust path if needed
 import SelectionPage from "./pages/Selection/SelectionPage";
 import Games from "./pages/User/Games/Games";
 import UserProfile from "./pages/User/UserProfile/UserProfile";
@@ -19,6 +20,7 @@ import BuyerLogin from "./pages/Seller/SellerLogin/BuyerLogin";
 import BuyerSignup from "./pages/Seller/SellerSignup/BuyerSignup";
 import BuyerProfile from "./pages/Seller/Profile/Profile";
 import BuyerLogout from "./pages/Seller/Logout/Logout";
+import { Video } from "lucide-react";
 
 function App() {
   return (
@@ -31,8 +33,14 @@ function App() {
         </div>
 
         {/* logo */}
-        <div className="absolute top-6 right-6 z-31 ">
-          <img src={logo} alt="logo" className="w-25 sm:w-20 md:w-24 h-auto" />
+        <div className="absolute top-6 right-6 z-311  ">
+          <div className=" ">
+            <img
+              src={logoimg}
+              alt="logo"
+              className="w-25 sm:w-20 md:w-24 h-auto"
+            />
+          </div>
         </div>
 
         {/* Routes in center */}

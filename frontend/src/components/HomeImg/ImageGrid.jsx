@@ -49,11 +49,12 @@ const images = [
 
 const ImageGrid = ({ onImageClick }) => {
   return (
-    <div className="w-full grid grid-cols-2 gap-4 mx-auto py-3 mb-8">
+    // grid ko flex se change kiya hai
+    <div className="w-full flex justify-center items-center flex-wrap gap-4 mx-auto py-3 mb-8">
       {images.map((image, index) => (
         <div
           key={index}
-          className="relative bg-white rounded-[9px] shadow-md overflow-hidden cursor-pointer"
+          className="relative bg-white rounded-[9px] shadow-md overflow-hidden cursor-pointer w-[47%]"
           onClick={() => onImageClick(image)}
         >
           <img

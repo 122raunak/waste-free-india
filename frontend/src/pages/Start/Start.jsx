@@ -5,6 +5,7 @@ import start from "../../assets/startpage.png";
 import startvideo from "../../../public/Vidoe/Waste Management Commercial.publer.com.mp4";
 import logo from "../../assets/logo/logo.png";
 import TextType from "../../components/Animation/TextType";
+import { motion } from "framer-motion";
 
 const Start = () => {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ const Start = () => {
 
       <div className="text-right w-full mt-40 relative z-31">
         <p className="font-semibold text-[20px] text-lime-300">Welcome to</p>
-        <h1 className="mt-2 font-bold text-white text-[48px] ">
+        <h1 className="font-bold text-[48px] text-white transition-colors duration-500 hover:text-green-400">
           WasteFreeIndia
         </h1>
       </div>
