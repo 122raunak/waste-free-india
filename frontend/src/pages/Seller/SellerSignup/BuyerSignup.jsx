@@ -113,7 +113,7 @@ const BuyerSignup = () => {
           <input
             className="bg-[#2196F3] text-white px-4 py-3 rounded text-lg font-semibold w-full mb-2"
             type="submit"
-            value={"Become a WasteFree India Partner"}
+            value={"Become a WasteFreeIndia Partner"}
           />
         </form>
         <p className=" text-red-500">{msg}</p>

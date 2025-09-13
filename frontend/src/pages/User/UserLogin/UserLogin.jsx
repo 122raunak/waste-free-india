@@ -11,11 +11,6 @@ import { AppContext } from "../../../context/AppContext";
 const UserLogin = () => {
   const { sellerIon, setsellerIon } = useContext(AppContext);
 
-  useEffect(() => {
-    console.log("form lgoin page", sellerIon);
-    localStorage.setItem("sellerIon", sellerIon);
-  }, []);
-
   const [msg, setmsg] = useState("");
 
   const navigate = useNavigate();
@@ -47,6 +42,8 @@ const UserLogin = () => {
       );
       if (res.status == 201) {
         console.log(" Login successful, redirecting...");
+        localStorage.setItem("sellerIon", sellerIon);
+
         setsellerIon(true);
         navigate("/user/profile");
       }
@@ -56,6 +53,13 @@ const UserLogin = () => {
       email: "",
       password: "",
     });
+  };
+
+  const handleGoogleLogin = () => {
+    setsellerIon(true);
+    window.location.href = `${
+      import.meta.env.VITE_BACKEND_URL
+    }/user/auth/google`;
   };
 
   return (
@@ -107,7 +111,10 @@ const UserLogin = () => {
         </div>
 
         {/* Google Button */}
-        <div className="bg-white text-black px-4 py-3 rounded  w-full flex justify-center items-center gap-4 border mb-2">
+        <div
+          className="bg-white text-black px-4 py-3 rounded  w-full flex justify-center items-center gap-4 border mb-2"
+          onClick={handleGoogleLogin}
+        >
           <img
             src={googlelogo}
             alt="google"

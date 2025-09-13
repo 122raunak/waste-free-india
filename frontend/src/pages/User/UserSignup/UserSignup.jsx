@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import Button from "../../../Components/Button/Button";
 import { Mail, Lock } from "lucide-react";
 import logo from "../../../../public/Logo/logo.png";
@@ -6,12 +6,10 @@ import googlelogo from "../../../../public/UserLogin/google-icon.png";
 import InputField from "../../../Components/Input/InputField";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { AppContext } from "../../../context/AppContext";
 
 const UserSignup = () => {
-  //   const [firstName, setFirstName] = useState("");
-  //   const [lastName, setLastName] = useState("");
-  //   const [email, setEmail] = useState("");
-  //   const [password, setPassword] = useState("");
+  const { setsellerIon } = useContext(AppContext);
 
   const navigate = useNavigate();
   const [formData, setfromData] = useState({
@@ -61,6 +59,12 @@ const UserSignup = () => {
       FirstName: "",
       LastName: "",
     });
+  };
+  const handleGoogleRegistration = () => {
+    setsellerIon(true);
+    window.location.href = `${
+      import.meta.env.VITE_BACKEND_URL
+    }/user/auth/google`;
   };
 
   return (
@@ -135,7 +139,10 @@ const UserSignup = () => {
         </div>
 
         {/* Google Button */}
-        <div className="bg-white text-black px-4 py-3 rounded  w-full flex justify-center items-center gap-4 border mb-2">
+        <div
+          onClick={handleGoogleRegistration}
+          className="bg-white text-black px-4 py-3 rounded  w-full flex justify-center items-center gap-4 border mb-2"
+        >
           <img
             src={googlelogo}
             alt="google"

@@ -15,25 +15,32 @@ passport.use(
   "user-local",
   new localStrategy({ usernameField: "email" }, UserModel.authenticate())
 );
+
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
-//  google regsitration
+//  Google strategy
 passport.use(
   "google-user",
   new GoogleStrategy(
     {
       clientID: process.env.Google_Client_ID,
       clientSecret: process.env.Google_Client_Secret,
-      callbackURL: "http://localhost:3000/auth/google/callback",
+      callbackURL: "http://localhost:3000/user/auth/google/callback", 
     },
     async function (accessToken, refreshToken, profile, done) {
       try {
         let user = await UserModel.findOne({ googleId: profile.id });
 
         if (!user) {
+          const names = profile.displayName.split(" "); 
+          const firstName = names[0];
+          const lastName = names.slice(1).join(" "); 
           user = await UserModel.create({
             googleId: profile.id,
-            name: profile.displayName,
+            FullName: {
+              FirstName: firstName,
+              LastName: lastName,
+            },
             email: profile.emails[0].value,
           });
         }
@@ -46,44 +53,40 @@ passport.use(
   )
 );
 
+// --- Google Auth routes ---
 router.get(
-  "/auth/google",
-  passport.authenticate("google", {
-    scope: ["profile", "email"],
-    // prompt: "select_account",
-  })
+  "/google",
+  passport.authenticate("google-user", { scope: ["profile", "email"] })
 );
+
 router.get(
-  "/auth/google/callback",
-  passport.authenticate("google", {
+  "/google/callback",
+  passport.authenticate("google-user", {
     failureRedirect: `${process.env.FRONTEND_URL}/user/login`,
   }),
   function (req, res) {
-    res.redirect(`${process.env.FRONTEND_URL}/home`);
-    // routes bad me change krne hai
+    res.redirect(`${process.env.FRONTEND_URL}/user/home`);
   }
 );
 
-router.get("/auth/google/switch", (req, res, next) => {
+router.get("/google/switch", (req, res, next) => {
   req.logout(function (err) {
     if (err) return next(err);
     req.session.destroy(() => {
-      // res.redirect("/auth/google/select");
       res.redirect(`${process.env.FRONTEND_URL}/user/login`);
     });
   });
 });
 
 router.get(
-  "/auth/google/select",
-  passport.authenticate("google", {
+  "/google/select",
+  passport.authenticate("google-user", {
     scope: ["profile", "email"],
     prompt: "select_account",
   })
 );
 
-// local registration
-
+// --- Local Auth routes ---
 router.post("/register", getRegister);
 router.post("/login", getLogin);
 
@@ -91,6 +94,7 @@ router.get("/check", isLoggedInUser, (req, res) => {
   console.log(" /check hit. User session:", req.user);
   res.status(200).json({ user: req.user });
 });
+
 router.get("/logout", getLogout);
 
 module.exports = router;
