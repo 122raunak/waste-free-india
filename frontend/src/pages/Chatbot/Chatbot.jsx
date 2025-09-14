@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import Navbar from "../../Components/Navbar/Navbar";
+import Navbar from "../../components/Navbar/Navbar"
 import { Plus, Send, X, Image as ImageIcon, Paperclip } from "lucide-react";
 import axios from "axios";
 
@@ -163,10 +163,7 @@ const Chatbot = () => {
       </div>
 
       {/* Navbar stays at bottom */}
-
-      {/* <Navbar /> */}
-      {/* use this one not bottem nav bar */}
-      {/* do nav  bar q */}
+      <Navbar/>
     </>
   );
 };

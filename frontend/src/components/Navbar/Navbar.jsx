@@ -68,7 +68,7 @@ const Navbar = () => {
         <div className={`${localData2 ? "block" : "hidden"}`}>
           <NavLink
             end
-            to="/user/sellingpage"
+            to="/buyer/listofwaste"
             className={({ isActive }) => getLinkClasses(isActive)}
           >
             <Icons icon={Recycle} title="Buy Waste" />
