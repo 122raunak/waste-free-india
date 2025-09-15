@@ -2,6 +2,11 @@ import React, { useRef, useState, useEffect } from "react";
 import Navbar from "../../Components/Navbar/Navbar";
 import { Plus, Send, X, Image as ImageIcon, Paperclip } from "lucide-react";
 import axios from "axios";
+import Loader from "../../components/Animation/Loader";
+
+// formatting ke liye use hote hai
+import ReactMarkdown from "react-markdown";
+import remarkBreaks from "remark-breaks";
 
 const Chatbot = () => {
   const [showOptions, setShowOptions] = useState(false);
@@ -75,15 +80,20 @@ const Chatbot = () => {
                 : "mr-auto bg-gray-200"
             }`}
           >
-            {msg.text}
+            <ReactMarkdown remarkPlugins={[remarkBreaks]}>
+              {msg.text}
+            </ReactMarkdown>
           </div>
         ))}
 
         {/* Show loading bubble separately */}
         {loading && (
-          <div className="mb-2 p-2 rounded-lg max-w-[80%] break-words mr-auto bg-gray-200 text-gray-400 italic">
+          <div className="mb-2 p-2 rounded-lg max-w-[80%] break-words mr-auto bg-gray-200 text-gray-400 italic justify-center items-center">
             We are trying to give you the best results possible, so it may take
-            up to 10–15 seconds
+            up to 10–15 seconds{" "}
+            <span className=" inline-block  ml-4">
+              <Loader />
+            </span>
           </div>
         )}
 

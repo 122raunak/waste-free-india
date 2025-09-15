@@ -33,14 +33,12 @@ function App() {
         </div>
 
         {/* logo */}
-        <div className="absolute top-6 right-6 z-311  ">
-          <div className=" ">
-            <img
-              src={logoimg}
-              alt="logo"
-              className="w-25 sm:w-20 md:w-24 h-auto"
-            />
-          </div>
+        <div className="  absolute top-6 right-6 z-311  ">
+          <img
+            src={logoimg}
+            alt="logo"
+            className="w-25 sm:w-20 md:w-24 h-auto"
+          />
         </div>
 
         {/* Routes in center */}

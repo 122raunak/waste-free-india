@@ -28,21 +28,18 @@ const WasteGame = ({ score, setScore }) => {
   };
 
   // spawn items
-  useEffect(() => {
-    const spawnInterval = setInterval(() => {
-      setItems((prev) => {
-        if (prev.length >= 4) return prev;
-        const random =
-          WASTE_ITEMS[Math.floor(Math.random() * WASTE_ITEMS.length)];
-        const uid = Date.now() + Math.random();
-        const rect = containerRef.current?.getBoundingClientRect();
-        const startX = rect ? rect.width / 2 - ITEM_SIZE / 2 : 50;
-        const startY = 12;
-        return [...prev, { ...random, uid, x: startX, y: startY }];
-      });
-    }, 1800);
+  const spawnItem = () => {
+    const random = WASTE_ITEMS[Math.floor(Math.random() * WASTE_ITEMS.length)];
+    const uid = Date.now() + Math.random();
+    const rect = containerRef.current?.getBoundingClientRect();
+    const startX = rect ? rect.width / 2 - ITEM_SIZE / 2 : 50;
+    const startY = 12;
+    setItems([{ ...random, uid, x: startX, y: startY }]); // only 1 item
+  };
 
-    return () => clearInterval(spawnInterval);
+  // run once when game starts
+  useEffect(() => {
+    spawnItem();
   }, []);
 
   // Show floating feedback
@@ -106,13 +103,14 @@ const WasteGame = ({ score, setScore }) => {
                 setScore((s) => s + 10); // correct → +10
                 showFeedback("+10", "green", movedItem.x, movedItem.y);
               } else {
-                setScore((s) => (s > 0 ? s - 10 : 0)); // wrong → -10
+                setScore((s) => s - 10); // wrong → -10 (can go negative)
                 showFeedback("-10 Wrong Item", "red", movedItem.x, movedItem.y);
               }
 
               // remove item immediately
               setTimeout(() => {
                 setItems((all) => all.filter((obj) => obj.uid !== it.uid));
+                spawnItem(); // spawn new after drop
               }, 0);
 
               // stop dragging this item

@@ -4,8 +4,7 @@ import { useNavigate } from "react-router-dom";
 import start from "../../assets/startpage.png";
 import startvideo from "../../../public/Vidoe/Waste Management Commercial.publer.com.mp4";
 import logo from "../../assets/logo/logo.png";
-import TextType from "../../components/Animation/TextType";
-import { motion } from "framer-motion";
+import SvgBtn from "../../components/Animation/SvgButton";
 
 const Start = () => {
   const navigate = useNavigate();
@@ -20,22 +19,29 @@ const Start = () => {
         loop
         muted
         playsInline
-        className="absolute top-0 left-0 w-full h-full object-cover z-30"
+        className="absolute top-0 left-0 w-full h-full object-cover z-0"
       />
 
-      <div className="text-right w-full mt-40 relative z-31">
-        <p className="font-semibold text-[20px] text-lime-300">Welcome to</p>
-        <h1 className="font-bold text-[48px] text-white transition-colors duration-500 hover:text-green-400">
+      {/* overlay addded */}
+      <div className="absolute top-0 left-0 w-full h-full bg-black/60 z-10"></div>
+
+      <div className="text-right w-full mt-40 relative z-20 ">
+        <p className="font-semibold text-[20px] text-lime-300 ">Welcome to</p>
+        <h1
+          className="font-bold text-[48px] text-white transition-colors duration-500 hover:text-green-400"
+          // style={{ fontFamily: "'Poppins', sans-serif" }}
+        >
           WasteFreeIndia
         </h1>
       </div>
 
-      {/* Button */}
       <div
-        className="relative top-[-180px] w-full font-extrabold text-[20px] mb-6 z-31"
+        className="relative top-[-180px] w-full font-extrabold text-[20px] mb-6 z-20 "
         onClick={handleStartClick}
       >
-        <Button text="Get started" />
+        {/* <Button text="Get started" /> */}
+        <SvgBtn />
+        {/* <button className="btn-donate">Get started</button> */}
       </div>
     </div>
   );
