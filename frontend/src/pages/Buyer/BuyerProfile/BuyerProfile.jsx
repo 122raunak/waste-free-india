@@ -2,13 +2,13 @@ import React, { use } from "react";
 import { UserCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../../components/Navbar/Navbar";
-import profile from "../../../../public/Profile/profile.png";
 import Button from "../../../components/Button/Button";
+import profile from "../../../../public/Profile/profile.png";
 
-function UserProfile() {
+function BuyerProfile() {
     const navigate = useNavigate();
     const handleClick = () => {
-        navigate("/user/profile/edit");
+        navigate("/buyer/profile/edit");
     }
   const userData = {
     name: "Unknown",
@@ -65,12 +65,11 @@ function UserProfile() {
             can also check the status directly on our web app
           </p>
         </div>
-        <Button text="LogOut" className="bg-red-700 absolute bottom-[-230px] right-[10px] w-40" link="/user/logout"/>
-
+        <Button text="LogOut" className="bg-red-700 absolute bottom-[-230px] right-[10px] w-40" link="/buyer/logout"/>
         <Navbar/>
       </div>
     </>
   );
 }
 
-export default UserProfile;
+export default BuyerProfile;

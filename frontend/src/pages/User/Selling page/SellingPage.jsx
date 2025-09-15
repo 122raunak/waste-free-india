@@ -1,13 +1,12 @@
 import React, { useState } from "react";
-import logo from "../../../public/Logo/logo.png";
 import {MapPin , ChevronDown} from "lucide-react";
-import ewaste from "../../../public/SellingPage/ewaste.png"
-import plastic from "../../../public/SellingPage/plastic.png"
-import paper from "../../../public/SellingPage/paper.png"
-import metal from "../../../public/SellingPage/metal.png"
-import Button from "../../Components/Button/Button";
-import ScrapCard from "../../Components/SellerPage/ScrapCard";
-import Navbar from "../../Components/Navbar/Navbar";
+import ewaste from "../../../../public/SellingPage/ewaste.png"
+import plastic from "../../../../public/SellingPage/plastic.png"
+import paper from "../../../../public/SellingPage/paper.png"
+import metal from "../../../../public/SellingPage/metal.png"
+import Button from "../../../components/Button/Button";
+import ScrapCard from "../../../components/SellerPage/ScrapCard"
+import Navbar from "../../../components/Navbar/Navbar";
 
 
 
@@ -44,7 +43,7 @@ const SellingPage = () => {
                 together for a cleaner India
             </p>
 
-            <Button text="Sell Now" className="w-[150px] mt-3"/>
+            <Button text="Sell Now" className="w-[150px] mt-3" link="/user/sellingpage/sellscrap"/>
         </div>
 
 

@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import Button from "../../../Components/Button/Button";
+import Button from "../../../components/Button/Button";
 import { Mail, Lock } from "lucide-react";
 import logo from "../../../../public/Logo/logo.png";
 import googlelogo from "../../../../public/UserLogin/google-icon.png";

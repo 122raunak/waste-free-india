@@ -6,7 +6,7 @@ import Home from "./pages/Home/Home";
 
 import UserLogin from "./pages/User/UserLogin/UserLogin";
 import UserSignup from "./pages/User/UserSignup/UserSignup";
-import SellingPage from "./pages/Selling page/SellingPage";
+import SellingPage from "./pages/User/Selling page/SellingPage";
 import Chatbot from "./pages/Chatbot/Chatbot";
 import logo from "../public/Logo/logoAnimation.gif"; // adjust path if needed
 import logoimg from "../public/Logo/logo.png"; // adjust path if needed
@@ -16,11 +16,19 @@ import UserProfile from "./pages/User/UserProfile/UserProfile";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 import Logout from "./pages/User/LogOut/Logout";
 import Navbar from "./components/Navbar/Navbar";
-import BuyerLogin from "./pages/Seller/SellerLogin/BuyerLogin";
-import BuyerSignup from "./pages/Seller/SellerSignup/BuyerSignup";
-import BuyerProfile from "./pages/Seller/Profile/Profile";
-import BuyerLogout from "./pages/Seller/Logout/Logout";
+import BuyerLogin from "./pages/Buyer/BuyerLogin/BuyerLogin";
+import BuyerSignup from "./pages/Buyer/BuyerSignup/BuyerSignup";
+import BuyerLogout from "./pages/Buyer/Logout/Logout";
 import { Video } from "lucide-react";
+import BuyerProfile from "./pages/Buyer/BuyerProfile/BuyerProfile";
+
+// yaha changes karne hai
+import EditUser from "./pages/User/UserProfile/EditUser";
+import ListOfWaste from "./pages/Buyer/BuyScrap/ListOfWaste";
+import WasteDescription from "./pages/Buyer/BuyScrap/WasteDescription";
+import BuyerConfirm from "./pages/Buyer/BuyerConfirm/BuyerConfirm";
+import Sell from "./pages/User/SellScrap/Sell";
+import Found from "./pages/Buyer/SellerFound/Found";
 
 function App() {
   return (
@@ -50,6 +58,20 @@ function App() {
             <Route path="/user/signup" element={<UserSignup />} />
             <Route path="/buyer/login" element={<BuyerLogin />} />
             <Route path="/buyer/signup" element={<BuyerSignup />} />
+
+            {/* yaha se routes change karne hai */}
+            <Route path="/user/profile/edit" element={<EditUser />} />
+            <Route path="/buyer/listofwaste" element={<ListOfWaste />} />
+            <Route
+              path="/buyer/listofwaste/:id"
+              element={<WasteDescription />}
+            />
+            <Route
+              path="/buyer/listofwaste/:id/confirm"
+              element={<BuyerConfirm />}
+            />
+            <Route path="/user/sellingpage/sellscrap" element={<Sell />} />
+            <Route path="/buyer/listofwaste/:id/found" element={<Found />} />
 
             {/* nested rotes with /user/roouteName */}
             <Route path="/user" element={<Navbar />}>
