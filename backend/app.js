@@ -11,6 +11,8 @@ const cors = require("cors");
 let app = express();
 
 const authRouter = require("./routes/UserAuth/authRoute");
+const userRouter = require("./routes/User/user");
+const buyerRouter = require("./routes/Buyer/buyer");
 const buyerAuthRouter = require("./routes/UserAuth/BuyerAuthRouter");
 const mapRouter = require("./routes/mapRouter/mapRouter");
 const chatbotRouter = require("./routes/chatBot/chatbot");
@@ -55,7 +57,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 app.use("/user/auth", authRouter);
+app.use("/user", userRouter);
 app.use("/buyer/auth", buyerAuthRouter);
+app.use("/buyer", buyerRouter);
 app.use("/map", mapRouter);
 app.use("/chatbot", chatbotRouter);
 app.use("/Scrap", ScrapRouter);

@@ -6,14 +6,13 @@ import profile from "../../../../public/Profile/profile.png";
 import { X } from "lucide-react"; // ❌ icon
 
 const Found = () => {
-  const [showAll, setShowAll] = useState(true); // toggle entire section
+  const [showAll, setShowAll] = useState(true);
 
   return (
     <>
       <div className="min-h-screen w-full flex flex-col items-center mt-70 py-4 px-5 bg-white">
         {showAll ? (
           <div className="relative w-full flex flex-col items-center">
-            
             <button
               onClick={() => setShowAll(false)}
               className="absolute top-[-18px] right-[-14px] text-red-500 hover:text-red-500"

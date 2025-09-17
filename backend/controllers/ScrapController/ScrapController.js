@@ -8,9 +8,10 @@ const getScrap = async (req, res) => {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
-    const { title, category, description, quantity, estimatedPrice } = req.body;
+    const { title, category, description, quantity, estimatedPrice, weight } =
+      req.body;
 
-    if (!title || !category || !description || !quantity || !estimatedPrice) {
+    if (!title || !category || !description || !estimatedPrice) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -20,13 +21,12 @@ const getScrap = async (req, res) => {
       description,
       quantity,
       estimatedPrice,
+      weight,
       seller: req.user._id,
-      // images: req.file.buffer,
+      images: [req.file.buffer],
     });
 
-    return res
-      .status(201)
-      .json({ message: "Scrap created successfully", scrap });
+    return res.status(201).json({ message: "Scrap created successfully" });
   } catch (error) {
     console.error(error);
     return res

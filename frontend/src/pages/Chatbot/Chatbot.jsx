@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import Navbar from "../../components/Navbar/Navbar"
+import Navbar from "../../components/Navbar/Navbar";
 import { Plus, Send, X, Image as ImageIcon, Paperclip } from "lucide-react";
 import axios from "axios";
 import Loader from "../../components/Animation/Loader";
@@ -167,13 +167,12 @@ const Chatbot = () => {
           />
 
           <button onClick={handleSend} className="p-2">
-            <Send className="w-6 h-6 text-gray-500" />
+            <Send className="w-6 h-6 text-gray-500 " />
           </button>
         </div>
       </div>
 
       {/* Navbar stays at bottom */}
-      <Navbar/>
     </>
   );
 };

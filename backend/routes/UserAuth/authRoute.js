@@ -25,16 +25,16 @@ passport.use(
     {
       clientID: process.env.Google_Client_ID,
       clientSecret: process.env.Google_Client_Secret,
-      callbackURL: "http://localhost:3000/user/auth/google/callback", 
+      callbackURL: "http://localhost:3000/user/auth/google/callback",
     },
     async function (accessToken, refreshToken, profile, done) {
       try {
         let user = await UserModel.findOne({ googleId: profile.id });
 
         if (!user) {
-          const names = profile.displayName.split(" "); 
+          const names = profile.displayName.split(" ");
           const firstName = names[0];
-          const lastName = names.slice(1).join(" "); 
+          const lastName = names.slice(1).join(" ");
           user = await UserModel.create({
             googleId: profile.id,
             FullName: {
@@ -91,7 +91,6 @@ router.post("/register", getRegister);
 router.post("/login", getLogin);
 
 router.get("/check", isLoggedInUser, (req, res) => {
-  console.log(" /check hit. User session:", req.user);
   res.status(200).json({ user: req.user });
 });
 

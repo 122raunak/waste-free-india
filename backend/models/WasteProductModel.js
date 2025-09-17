@@ -19,11 +19,14 @@ const wasteProductSchema = mongoose.Schema(
       type: Number,
       required: true,
     },
-    // unit: {
-    //   type: String,
-    //   enum: ["kg", "liters", "pieces"],
-    //   default: "kg",
-    // },
+    unit: {
+      type: String,
+      enum: ["kg", "liters", "pieces"],
+      default: "kg",
+    },
+    weight: {
+      type: String,
+    },
     estimatedPrice: {
       type: Number,
       default: 0,

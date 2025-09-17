@@ -30,7 +30,8 @@ const Navbar = () => {
 
   return (
     <>
-      <div className="fixed flex flex-row items-center justify-around w-full h-[64px] bg-white bottom-0 z-[50] border-t">
+      {/* zindex 100 */}
+      <div className="fixed flex flex-row items-center justify-around w-full h-[64px] bg-white bottom-0 z-[100] border-t">
         <NavLink
           to="/user/home"
           end

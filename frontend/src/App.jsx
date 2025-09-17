@@ -29,6 +29,7 @@ import WasteDescription from "./pages/Buyer/BuyScrap/WasteDescription";
 import BuyerConfirm from "./pages/Buyer/BuyerConfirm/BuyerConfirm";
 import Sell from "./pages/User/SellScrap/Sell";
 import Found from "./pages/Buyer/SellerFound/Found";
+import EditBuyer from "./pages/Buyer/BuyerProfile/EditBuyer";
 
 function App() {
   return (
@@ -41,7 +42,7 @@ function App() {
         </div>
 
         {/* logo */}
-        <div className="  absolute top-6 right-6 z-311  ">
+        <div className=" fixed top-6 right-6 z-311  ">
           <img
             src={logoimg}
             alt="logo"
@@ -60,18 +61,6 @@ function App() {
             <Route path="/buyer/signup" element={<BuyerSignup />} />
 
             {/* yaha se routes change karne hai */}
-            <Route path="/user/profile/edit" element={<EditUser />} />
-            <Route path="/buyer/listofwaste" element={<ListOfWaste />} />
-            <Route
-              path="/buyer/listofwaste/:id"
-              element={<WasteDescription />}
-            />
-            <Route
-              path="/buyer/listofwaste/:id/confirm"
-              element={<BuyerConfirm />}
-            />
-            <Route path="/user/sellingpage/sellscrap" element={<Sell />} />
-            <Route path="/buyer/listofwaste/:id/found" element={<Found />} />
 
             {/* nested rotes with /user/roouteName */}
             <Route path="/user" element={<Navbar />}>
@@ -96,11 +85,35 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="profile/edit"
+                element={
+                  <ProtectedRoute>
+                    <EditUser />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="sellingpage/sellscrap"
+                element={
+                  <ProtectedRoute>
+                    <Sell />
+                  </ProtectedRoute>
+                }
+              />
             </Route>
             {/*  nested routes for buyer /buyer/profile */}
             <Route path="/buyer" element={<Navbar />}>
               <Route path="profile" element={<BuyerProfile />} />
+              <Route path="profile/edit" element={<EditBuyer />} />
               <Route path="logout" element={<BuyerLogout />} />
+              <Route path="listofwaste" element={<ListOfWaste />} />
+              <Route path="listofwaste/:id" element={<WasteDescription />} />
+              <Route
+                path="listofwaste/:id/confirm"
+                element={<BuyerConfirm />}
+              />
+              <Route path="listofwaste/:id/found" element={<Found />} />
             </Route>
           </Routes>
         </div>

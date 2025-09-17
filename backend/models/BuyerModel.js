@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 const plm = require("passport-local-mongoose");
 
 const buyerSchema = mongoose.Schema({
+  role: {
+    type: String,
+    default: "Buyer",
+  },
   FullName: {
     FirstName: { type: String, required: true },
     LastName: { type: String },

@@ -6,10 +6,10 @@ function isLoggedInUser(req, res, next) {
 }
 
 function isLoggedInCaptain(req, res, next) {
-  if (req.isAuthenticated() && req.buyer) {
+  if (req.isAuthenticated() && req.user && req.user.role === "Buyer") {
     return next();
   }
-  res.redirect(`${process.env.FRONTEND_URL}/home`);
+  return res.status(401).json({ message: "Not authenticated" });
 }
 
 module.exports = { isLoggedInUser, isLoggedInCaptain };

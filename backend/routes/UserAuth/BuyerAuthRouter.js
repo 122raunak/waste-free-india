@@ -9,6 +9,10 @@ const {
   getLogin,
   getLogout,
 } = require("../../controllers/AuthController/BuyerAuthControler");
+const {
+  isLoggedInCaptain,
+  isLoggedInUser,
+} = require("../../middlewares/isLoggedIn");
 
 passport.use(
   "buyer-local",
@@ -85,5 +89,9 @@ router.post("/register", getRegister);
 router.post("/login", getLogin);
 
 router.get("/logout", getLogout);
+
+router.get("/check", isLoggedInCaptain, (req, res) => {
+  res.status(200).json({ buyer: req.user });
+});
 
 module.exports = router;

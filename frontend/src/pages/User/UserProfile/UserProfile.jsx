@@ -1,73 +1,132 @@
-import React, { use } from "react";
-import { UserCircle2 } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../../components/Navbar/Navbar";
-import profile from "../../../../public/Profile/profile.png";
 import Button from "../../../components/Button/Button";
+import axios from "axios";
 
 function UserProfile() {
-    const navigate = useNavigate();
-    const handleClick = () => {
-        navigate("/user/profile/edit");
-    }
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate("/user/profile/edit");
+  };
+
+  const [formData, setFormData] = useState({
+    FullName: { FirstName: "", LastName: "" },
+    email: "",
+    contact: "",
+    address: "",
+    profileImg: "/Profile/profile.png",
+  });
+
+  useEffect(() => {
+    const fetchLoggedInUserData = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/user/auth/check`,
+          { withCredentials: true }
+        );
+
+        const user = res.data.user;
+
+        // Convert buffer to base64 string if profileImg exists
+        let profileImgBase64 = "/Profile/profile.png";
+        if (user.profileImg && user.profileImg.data) {
+          const binary = new Uint8Array(user.profileImg.data);
+          const base64String = btoa(
+            binary.reduce((acc, byte) => acc + String.fromCharCode(byte), "")
+          );
+          profileImgBase64 = `data:image/jpeg;base64,${base64String}`;
+        }
+
+        setFormData({
+          FullName: {
+            FirstName: user.FullName?.FirstName || "",
+            LastName: user.FullName?.LastName || "",
+          },
+          email: user.email || "NA",
+          contact: user.ContactNo || "NA",
+          address: user.Address || "NA",
+          profileImg: profileImgBase64,
+        });
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchLoggedInUserData();
+  }, []);
+
   const userData = {
-    name: "Unknown",
-    email: "Unknown",
-    contact: "NA",
-    address: "NA",
+    name:
+      `${formData.FullName.FirstName} ${formData.FullName.LastName}`.trim() ||
+      "NA",
+    email: formData.email,
+    contact: formData.contact,
+    address: formData.address,
+    profileImg: formData.profileImg,
   };
 
   return (
     <>
-      <div className="relative z-[90] h-full mt-[-20px]  pb-20 flex flex-col items-center justify-center">
-        {/*top porsion */}
-        <div className=" flex flex-row justify-center  gap-4 mb-6">
-             
-          <div className="flex flex-col items-center  gap-6">
+      <div className="relative z-[90] h-full mt-[20px]   py-10 px-4 flex flex-col items-center">
+        <div className="flex flex-col items-center gap-6 mb-8">
+          <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-2 border-gray-300 flex items-center justify-center bg-gray-100 shadow-md">
+            <img
+              src={userData.profileImg}
+              alt="Profile"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <button
+            onClick={handleClick}
+            className="px-10 py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-2xl shadow-md transition-all duration-300 transform hover:scale-105"
+          >
+            Edit
+          </button>
+        </div>
 
-            <div className="w-24 h-24 rounded-full overflow-hidden border-2  flex items-center justify-center bg-gray-200">
-              <img src={profile} alt="" />
+        <div className=" flex flex-col gap-8">
+          <div className="w-full max-w-md bg-white shadow-md rounded-xl p-6 space-y-4">
+            <div className="flex justify-between items-center">
+              <p className="text-gray-800">
+                <span className="font-semibold">Name:</span> {userData.name}
+              </p>
+              <p className="text-gray-800">
+                <span className="font-semibold">Contact:</span>{" "}
+                {userData.contact}
+              </p>
             </div>
-            {/* edit button */}
-            <div className="">
-              <button onClick={handleClick} className="border border-black bg-[#07C907] text-white w-[100px] h-[35px] rounded-2xl"><b>Edit</b></button>
+            <p className="text-gray-800">
+              <span className="font-semibold">Email:</span> {userData.email}
+            </p>
+            <div>
+              <span className="font-semibold text-gray-800">Address:</span>
+              <p className="mt-1 bg-gray-50 p-3 rounded-md text-gray-700 shadow-sm">
+                {userData.address}
+              </p>
             </div>
-
           </div>
 
-          <div className="">
-            <h2>
-              {" "}
-              <b>Name: </b> {userData.name}
-            </h2>
-            <p>
-              <b>Email: </b>
-              {userData.email}
+          <div className="w-full max-w-md bg-white shadow-md rounded-xl p-6 text-center space-y-2">
+            <p className="font-medium text-gray-800">
+              You haven't listed any waste material for sale yet
             </p>
-            <p>
-              <b>Contact: </b>
-              {userData.contact}
-            </p>
-            <p>
-              <b>Address: </b> {userData.address}
-            </p>
+            {/* bad me work krna hai ispe */}
+            {/* <p className="text-sm text-gray-600">
+            Once a buyer has been found, we will notify you via message. You can
+            also check the status directly on our web app.
+          </p> */}
           </div>
         </div>
 
-        {/*partition line  */}
-        <div className="w-full h-0.5 mt-2 bg-black"> </div>
-
-        {/* bottom portion */}
-        <div className="h-[60px] w-full">
-          <p className=" font-medium mb-3 mt-10 text-center   ">You haven't listed any waste material for sale yet</p>
-          <p className=" font-normal text-center ">
-            Once a buyer has been found,we will notify you soonvia message. You
-            can also check the status directly on our web app
-          </p>
-        </div>
-        <Button text="LogOut" className="bg-red-700 absolute bottom-[-230px] right-[10px] w-40" link="/user/logout"/>
-
-        <Navbar/>
+        {/* <div className="mt-4">
+          <Button
+            text="Log Out"
+            className="bg-red-600 hover:bg-red-700 w-40 rounded-lg shadow-md transition-transform duration-200 hover:scale-105"
+            link="/user/logout"
+          />
+        </div> */}
       </div>
     </>
   );
