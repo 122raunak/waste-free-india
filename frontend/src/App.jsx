@@ -30,6 +30,7 @@ import BuyerConfirm from "./pages/Buyer/BuyerConfirm/BuyerConfirm";
 import Sell from "./pages/User/SellScrap/Sell";
 import Found from "./pages/Buyer/SellerFound/Found";
 import EditBuyer from "./pages/Buyer/BuyerProfile/EditBuyer";
+import ShinyText from "./components/Animation/ShinyText";
 
 function App() {
   return (
@@ -42,13 +43,13 @@ function App() {
         </div>
 
         {/* logo */}
-        <div className=" fixed top-6 right-6 z-311  ">
+        {/* <div className=" fixed top-6 right-6 z-311  ">
           <img
             src={logoimg}
             alt="logo"
             className="w-25 sm:w-20 md:w-24 h-auto"
           />
-        </div>
+        </div> */}
 
         {/* Routes in center */}
         <div className="relative w-full h-full flex flex-col justify-center items-center">

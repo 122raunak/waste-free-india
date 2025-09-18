@@ -15,9 +15,10 @@ function BuyerConfirm() {
     const loadWasteItem = async () => {
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/Scrap/show/${id}/confirm`,
+          `${import.meta.env.VITE_BACKEND_URL}/Scrap/show/${id}`,
           { withCredentials: true }
         );
+
         setWasteData(res.data.wasteItem);
       } catch (error) {
         console.error(error);
@@ -25,6 +26,18 @@ function BuyerConfirm() {
     };
     loadWasteItem();
   }, [id]);
+
+  const addBuyertoWaste = async () => {
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/Scrap/show/${id}/confirm`,
+        {},
+        { withCredentials: true }
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   if (!wasteData) return <p>Loading...</p>;
 
@@ -52,7 +65,7 @@ function BuyerConfirm() {
           {wasteData.seller?.FullName?.LastName}
         </p>
         <p>
-          <b>Email:</b> {wasteData.seller?.email}
+          <b>ContactNo:</b> {wasteData.seller?.ContactNo}
         </p>
         <p>
           <b>Address:</b> {wasteData.seller?.Address}
@@ -69,7 +82,10 @@ function BuyerConfirm() {
         <Button
           text="Confirm"
           className="border border-black flex-1"
-          onClick={() => navigate(`/buyer/listofwaste/${id}/found`)}
+          onClick={() => {
+            addBuyertoWaste();
+            navigate(`/buyer/listofwaste/${id}/found`);
+          }}
         />
       </div>
       <Navbar />

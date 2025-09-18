@@ -1,12 +1,47 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import WasteItem from "../../../components/WasteItem/WasteItem";
 import paper from "../../../../public/Found/newspaper.png";
 import Navbar from "../../../components/Navbar/Navbar";
 import profile from "../../../../public/Profile/profile.png";
 import { X } from "lucide-react"; // ❌ icon
+import axios from "axios";
+import { useParams } from "react-router-dom";
 
 const Found = () => {
+  const { id } = useParams();
   const [showAll, setShowAll] = useState(true);
+  const [wasteData, setWasteData] = useState(null);
+
+  useEffect(() => {
+    const loadWasteItem = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/Scrap/show/${id}/confirm/found`,
+          { withCredentials: true }
+        );
+        console.log(res.data.wasteItem);
+
+        setWasteData(res.data.wasteItem);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    loadWasteItem();
+  }, [id]);
+
+  if (!wasteData) return <p>Loading...</p>;
+
+  let profileImgBase64 = profile;
+  if (
+    wasteData.assignedBuyer?.profileImg &&
+    wasteData.assignedBuyer?.profileImg.data
+  ) {
+    const binary = new Uint8Array(wasteData.assignedBuyer?.profileImg.data);
+    const base64String = btoa(
+      binary.reduce((acc, byte) => acc + String.fromCharCode(byte), "")
+    );
+    profileImgBase64 = `data:image/jpeg;base64,${base64String}`;
+  }
 
   return (
     <>
@@ -23,13 +58,12 @@ const Found = () => {
             {/* Waste item card */}
             <WasteItem
               item={{
-                id: 1,
-                type: "Paper",
-                quantity: 30,
-                weight: "5KG",
-                price: 500,
-                imageSrc: paper,
-                title: "Newspaper",
+                id: wasteData._id,
+                type: wasteData.category,
+                quantity: wasteData.quantity,
+                weight: wasteData.weight,
+                estimatedPrice: wasteData.estimatedPrice,
+                images: wasteData.images,
               }}
               showLearnMore={false}
             />
@@ -41,26 +75,26 @@ const Found = () => {
             </div>
 
             {/* Buyer profile */}
-            <div className="flex flex-row justify-between w-[90%] mt-6 bg-gray-50 rounded-lg py-3 px-4 items-center shadow">
+            <div className="flex flex-row justify-between w-[90%] mt-6 bg-gray-50 rounded-lg py-3 px-4 items-center shadow ">
               <img
-                src={profile}
+                src={profileImgBase64}
                 alt="profile"
-                className="w-16 h-16 rounded-full border"
+                className="w-16 h-16 rounded-full border object-cover"
               />
               <div className="flex flex-col text-sm text-gray-700">
-                <p>Name: Unknown</p>
-                <p>Contact: Unknown</p>
-                <p>Address: Unknown</p>
-                <p>Other: Unknown</p>
+                <p>
+                  Name:{" "}
+                  {`${wasteData.assignedBuyer?.FullName?.FirstName} ${wasteData.assignedBuyer?.FullName?.LasteName}`}
+                </p>
+                <p>Contact: {wasteData.assignedBuyer?.ContactNo}</p>
+                <p>Address: {wasteData.assignedBuyer?.Address}</p>
+                <p>BusinessName: {wasteData.assignedBuyer?.BusinessName}</p>
               </div>
             </div>
           </div>
         ) : (
           <p className="mt-10 text-gray-500">❌ Cancelled</p>
         )}
-
-        {/* Bottom nav stays always */}
-        <Navbar />
       </div>
     </>
   );

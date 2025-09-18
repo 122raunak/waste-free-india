@@ -5,6 +5,7 @@ import start from "../../assets/startpage.png";
 import startvideo from "../../../public/Vidoe/Waste Management Commercial.publer.com.mp4";
 import logo from "../../assets/logo/logo.png";
 import SvgBtn from "../../components/Animation/SvgButton";
+import ShinyText from "../../components/Animation/ShinyText";
 
 const Start = () => {
   const navigate = useNavigate();
@@ -13,6 +14,9 @@ const Start = () => {
   };
   return (
     <div className="relative min-h-screen w-full flex flex-col items-center justify-between overflow-hidden px-[20px] py-[10px]">
+      <div className=" fixed top-6 right-6 z-311  ">
+        <img src={logo} alt="logo" className="w-25 sm:w-20 md:w-24 h-auto" />
+      </div>
       <video
         src={startvideo}
         autoPlay
@@ -27,12 +31,18 @@ const Start = () => {
 
       <div className="text-right w-full mt-40 relative z-20 ">
         <p className="font-semibold text-[20px] text-lime-300 ">Welcome to</p>
-        <h1
+        {/* <h1
           className="font-bold text-[48px] text-white transition-colors duration-500 hover:text-green-400"
           // style={{ fontFamily: "'Poppins', sans-serif" }}
         >
           WasteFreeIndia
-        </h1>
+        </h1> */}
+        <ShinyText
+          text="WasteFreeIndia"
+          speed={3}
+          textColor="white"
+          className="text-5xl font-bold"
+        />
       </div>
 
       <div
