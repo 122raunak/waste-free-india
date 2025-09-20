@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../../components/Navbar/Navbar";
 import Button from "../../../components/Button/Button";
 import axios from "axios";
+import HamberMenu from "./HamberMenu";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
 
 function UserProfile() {
   const navigate = useNavigate();
@@ -67,9 +70,47 @@ function UserProfile() {
     profileImg: formData.profileImg,
   };
 
+  const menuref = useRef(null);
+  const [menuOpen, setmenuOpen] = useState(false);
+
+  useGSAP(() => {
+    if (menuOpen) {
+      gsap.to(menuref.current, {
+        x: 0,
+        duration: 0.6,
+        ease: "power3.out",
+      });
+    } else {
+      gsap.to(menuref.current, {
+        x: 300,
+        duration: 0.6,
+        ease: "power3.out",
+      });
+    }
+  }, [menuOpen]);
+
   return (
     <>
       <div className="relative z-[90] h-full mt-[20px]   py-10 px-4 flex flex-col items-center">
+        <div
+          className="text-4xl absolute right-8 -top-15 z-10"
+          onClick={() => {
+            setmenuOpen(!menuOpen);
+          }}
+        >
+          <i
+            className={`fa-solid fa-bars transition-transform duration-300 ease-in-out ${
+              menuOpen ? "rotate-90" : ""
+            }`}
+          />
+        </div>
+        <div
+          className=" absolute right-0 -top-20 translate-x-[300px]"
+          ref={menuref}
+        >
+          <HamberMenu />
+        </div>
+
         <div className="flex flex-col items-center gap-6 mb-8">
           <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-2 border-gray-300 flex items-center justify-center bg-gray-100 shadow-md">
             <img

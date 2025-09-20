@@ -12,12 +12,10 @@ const ShinyText = ({
 
   return (
     <span className={`relative inline-block ${className}`}>
-      {/* Base text (static color) */}
       <span className="relative z-0" style={{ color: baseColor }}>
         {text}
       </span>
 
-      {/* Shiny overlay text */}
       {!disabled && (
         <span
           className="absolute inset-0 z-10 text-transparent"

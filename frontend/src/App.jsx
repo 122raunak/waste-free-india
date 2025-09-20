@@ -31,6 +31,10 @@ import Sell from "./pages/User/SellScrap/Sell";
 import Found from "./pages/Buyer/SellerFound/Found";
 import EditBuyer from "./pages/Buyer/BuyerProfile/EditBuyer";
 import ShinyText from "./components/Animation/ShinyText";
+import RecyclingPonts from "./pages/User/recycling/RecyclingPonts";
+import LeaderBord from "./pages/User/LeaderBord/LeaderBord";
+import Shop from "./pages/Shop/Shop";
+import RecyclingWaste from "./pages/User/recycling/RecyclingWaste";
 
 function App() {
   return (
@@ -52,7 +56,7 @@ function App() {
         </div> */}
 
         {/* Routes in center */}
-        <div className="relative w-full h-full flex flex-col justify-center items-center">
+        <div className="relative w-full h-full flex flex-col justify-center items-center z-30">
           <Routes>
             {/* public */}
             <Route path="/" element={<Start />} />
@@ -60,6 +64,8 @@ function App() {
             <Route path="/user/signup" element={<UserSignup />} />
             <Route path="/buyer/login" element={<BuyerLogin />} />
             <Route path="/buyer/signup" element={<BuyerSignup />} />
+            <Route path="/recyclingpoints" element={<RecyclingPonts />} />
+            <Route path="/user/buyer/shop" element={<Shop />} />
 
             {/* yaha se routes change karne hai */}
 
@@ -102,6 +108,22 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="leaderbord"
+                element={
+                  <ProtectedRoute>
+                    <LeaderBord />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="reportwaste"
+                element={
+                  <ProtectedRoute>
+                    <RecyclingWaste />
+                  </ProtectedRoute>
+                }
+              />
             </Route>
             {/*  nested routes for buyer /buyer/profile */}
             <Route path="/buyer" element={<Navbar />}>
@@ -122,7 +144,7 @@ function App() {
         {/* bottom circles */}
         <div className=" fixed top-0 left-0 w-full h-full pointer-events-none">
           <div className="absolute bottom-[-30px] right-[-75px] bg-[#B8EBBE] w-[200px] h-[200px] rounded-full z-[10]" />
-          <div className="absolute bottom-[-92px] right-[2px] bg-[#81E68D] w-[200px] h-[200px] rounded-full opacity-40 z-[20]" />
+          <div className="absolute bottom-[-92px] right-[2px] bg-[#81E68D] w-[200px] h-[200px] rounded-full opacity-40 z-[10]" />
         </div>
       </div>
     </>
