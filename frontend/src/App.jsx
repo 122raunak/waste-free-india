@@ -72,6 +72,8 @@ function App() {
             {/* nested rotes with /user/roouteName */}
             <Route path="/user" element={<Navbar />}>
               <Route path="home" element={<Home />} />{" "}
+
+              
               <Route
                 path="sellingpage"
                 element={

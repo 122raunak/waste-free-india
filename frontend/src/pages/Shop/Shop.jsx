@@ -41,7 +41,7 @@ function Shop() {
 
   return (
     <>
-      <div className="h-[80vh] w-full mt-20 px-4 mb-10">
+      <div className="h-[80vh] w-full mt-10 px-4 mb-10">
         <div className="bg-zinc-700 w-full h-14 flex items-center px-4 sm:px-8 rounded-md gap-2 sm:gap-4">
           <form
             onSubmit={handleSubmit}
@@ -65,7 +65,7 @@ function Shop() {
           </form>
         </div>
 
-        <div className="flex flex-wrap justify-center gap-4 sm:gap-5 mt-10 sm:mt-20 overflow-y-auto max-h-[70vh]">
+        <div className="flex flex-wrap justify-center gap-4 sm:gap-5 mt-10 sm:mt-20 overflow-y-auto max-h-[72vh]">
           {newprodct.map(({ price, name, discount, img }) => {
             return (
               <div className="w-full sm:w-60 flex flex-col">
