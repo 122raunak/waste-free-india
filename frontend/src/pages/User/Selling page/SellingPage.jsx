@@ -98,10 +98,6 @@ const SellingPage = () => {
                     <ScrapCard image={paper} title={"Paper"} />
                     <ScrapCard image={ewaste} title={"E-Waste"} />
                     <ScrapCard image={metal} title={"Metal"} />
-                    <ScrapCard image={metal} title={"Metal"} />
-                    <ScrapCard image={metal} title={"Metal"} />
-                    <ScrapCard image={metal} title={"Metal"} />
-                    <ScrapCard image={metal} title={"Metal"} />
                   </div>
                 </div>
               </div>

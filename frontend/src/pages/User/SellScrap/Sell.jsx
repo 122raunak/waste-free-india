@@ -55,6 +55,7 @@ function SellScrap() {
         images: "",
         weight: "",
       });
+      setWasteItemImage(wastebin);
     } catch (err) {
       console.error(err);
     }
@@ -121,6 +122,7 @@ function SellScrap() {
                   name="category"
                   className="block w-full bg-white rounded-md shadow-sm p-2 pr-10 text-sm appearance-none"
                   required
+                  value={FormData.category}
                   onChange={handleChange}
                 >
                   <option value="">Select Waste Type</option>

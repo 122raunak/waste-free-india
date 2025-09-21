@@ -7,12 +7,14 @@ import {
   InfoWindow,
   Circle,
 } from "@react-google-maps/api";
+import { useNavigate } from "react-router-dom";
 
 const libraries = ["places"];
 const mapContainerStyle = { width: "100%", height: "80vh" };
 const defaultCenter = { lat: 28.7041, lng: 77.1025 }; // Delhi default
 
 export default function RecyclingPoints() {
+  const navigate = useNavigate();
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAP_API,
     libraries,
@@ -71,93 +73,102 @@ export default function RecyclingPoints() {
   if (!isLoaded) return <div>Loading map...</div>;
 
   return (
-    <GoogleMap
-      mapContainerStyle={mapContainerStyle}
-      zoom={13}
-      center={center}
-      onLoad={(map) => {
-        mapRef.current = map;
-        fetchAllPlaces(map, center);
-      }}
-      options={{
-        streetViewControl: false,
-        mapTypeControl: false,
-        fullscreenControl: true,
-        zoomControl: true,
-        draggable: true,
-        scrollwheel: true,
-      }}
-    >
-      {/* 5 km highlight circle */}
-      <Circle
+    <div className="h-[100vh] w-full  bg-white flex justify-center items-center">
+      <button
+        onClick={() => navigate(-1)}
+        className="absolute top-4 right-4 z-20 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow"
+      >
+        Back
+      </button>
+      ;
+      <GoogleMap
+        mapContainerStyle={mapContainerStyle}
+        zoom={13}
         center={center}
-        radius={5000}
+        onLoad={(map) => {
+          mapRef.current = map;
+          fetchAllPlaces(map, center);
+        }}
         options={{
-          fillColor: "#90ee90",
-          fillOpacity: 0.2,
-          strokeColor: "#008000",
-          strokeOpacity: 0.5,
+          streetViewControl: false,
+          mapTypeControl: false,
+          fullscreenControl: true,
+          zoomControl: true,
+          draggable: true,
+          scrollwheel: true,
         }}
-      />
-
-      {/* Current user location */}
-      <Marker
-        position={center}
-        label={{
-          text: "You",
-          color: "white",
-          fontSize: "14px",
-          fontWeight: "bold",
-        }}
-        icon={{
-          path: window.google.maps.SymbolPath.CIRCLE,
-          scale: 12,
-          fillColor: "#0000FF",
-          fillOpacity: 1,
-          strokeWeight: 2,
-          strokeColor: "white",
-        }}
-      />
-
-      {/* Waste management markers */}
-      {places.map((place, i) => (
-        <Marker
-          key={i}
-          position={{
-            lat: place.geometry.location.lat(),
-            lng: place.geometry.location.lng(),
+      >
+        {/* 5 km highlight circle */}
+        <Circle
+          center={center}
+          radius={5000}
+          options={{
+            fillColor: "#90ee90",
+            fillOpacity: 0.2,
+            strokeColor: "#008000",
+            strokeOpacity: 0.5,
           }}
-          onClick={() => setSelected(place)}
+        />
+
+        {/* Current user location */}
+        <Marker
+          position={center}
           label={{
-            text: getLabelEmoji(place.name),
-            fontSize: "18px",
+            text: "You",
+            color: "white",
+            fontSize: "14px",
+            fontWeight: "bold",
           }}
           icon={{
             path: window.google.maps.SymbolPath.CIRCLE,
-            scale: 20,
-            fillColor: getColor(place.name),
-            fillOpacity: 0.8,
-            strokeWeight: 1,
+            scale: 12,
+            fillColor: "#0000FF",
+            fillOpacity: 1,
+            strokeWeight: 2,
             strokeColor: "white",
           }}
         />
-      ))}
 
-      {selected && (
-        <InfoWindow
-          position={{
-            lat: selected.geometry.location.lat(),
-            lng: selected.geometry.location.lng(),
-          }}
-          onCloseClick={() => setSelected(null)}
-        >
-          <div>
-            <h4>{selected.name}</h4>
-            <p>{selected.vicinity}</p>
-          </div>
-        </InfoWindow>
-      )}
-    </GoogleMap>
+        {/* Waste management markers */}
+        {places.map((place, i) => (
+          <Marker
+            key={i}
+            position={{
+              lat: place.geometry.location.lat(),
+              lng: place.geometry.location.lng(),
+            }}
+            onClick={() => setSelected(place)}
+            label={{
+              text: getLabelEmoji(place.name),
+              fontSize: "18px",
+            }}
+            icon={{
+              path: window.google.maps.SymbolPath.CIRCLE,
+              scale: 20,
+              fillColor: getColor(place.name),
+              fillOpacity: 0.8,
+              strokeWeight: 1,
+              strokeColor: "white",
+            }}
+          />
+        ))}
+
+        {selected && (
+          <InfoWindow
+            position={{
+              lat: selected.geometry.location.lat(),
+              lng: selected.geometry.location.lng(),
+            }}
+            onCloseClick={() => setSelected(null)}
+          >
+            <div>
+              <h4>{selected.name}</h4>
+              <p>{selected.vicinity}</p>
+            </div>
+          </InfoWindow>
+        )}
+      </GoogleMap>
+    </div>
   );
 }
 

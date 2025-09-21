@@ -1,22 +1,32 @@
 import React, { useState } from "react";
 import bin from "../../../public/SellingPage/bin.png";
+import broom from "../../../public/SellingPage/broom.webp";
+import cleaningbrush from "../../../public/SellingPage/cleaning brush.jpeg";
+import dustpan from "../../../public/SellingPage/dustpan.jpeg";
+import FaceMask from "../../../public/SellingPage/face mask.jpeg";
+import gloves from "../../../public/SellingPage/gloves.jpg";
+import handSanitizar from "../../../public/SellingPage/hand sanitager.jpeg";
+import mop from "../../../public/SellingPage/mop.jpeg";
+import recylingBin from "../../../public/SellingPage/recycling bin.jpeg";
+import trashBag from "../../../public/SellingPage/trash bag.jpg";
+import wasteCompactor from "../../../public/SellingPage/trasCompactor.jpg";
 import { useSearchParams } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 
 function Shop() {
   const Products = [
-    { price: 450, name: "Dustbin", discount: 20 },
-    { price: 150, name: "Gloves", discount: 10 },
-    { price: 250, name: "Face Mask", discount: 15 },
-    { price: 750, name: "Broom", discount: 25 },
-    { price: 500, name: "Trash Bags", discount: 18 },
-    { price: 1200, name: "Recycling Bin", discount: 30 },
-    { price: 300, name: "Hand Sanitizer", discount: 12 },
-    { price: 650, name: "Cleaning Brush", discount: 22 },
-    { price: 2500, name: "Industrial Dustbin", discount: 35 },
-    { price: 350, name: "Mop", discount: 15 },
-    { price: 100, name: "Dustpan", discount: 10 },
-    { price: 1800, name: "Waste Compactor", discount: 40 },
+    { price: 450, name: "Dustbin", discount: 20, img: recylingBin },
+    { price: 150, name: "Gloves", discount: 10, img: gloves },
+    { price: 250, name: "Face Mask", discount: 15, img: FaceMask },
+    { price: 750, name: "Broom", discount: 25, img: broom },
+    { price: 500, name: "Trash Bags", discount: 18, img: trashBag },
+    { price: 1200, name: "Recycling Bin", discount: 30, img: recylingBin },
+    { price: 300, name: "Hand Sanitizer", discount: 12, img: handSanitizar },
+    { price: 650, name: "Cleaning Brush", discount: 22, img: cleaningbrush },
+    { price: 2500, name: "Industrial Dustbin", discount: 35, img: recylingBin },
+    { price: 350, name: "Mop", discount: 15, img: mop },
+    { price: 100, name: "Dustpan", discount: 10, img: dustpan },
+    { price: 1800, name: "Waste Compactor", discount: 40, img: wasteCompactor },
   ];
 
   const [search, setSearch] = useState("");
@@ -56,7 +66,7 @@ function Shop() {
         </div>
 
         <div className="flex flex-wrap justify-center gap-4 sm:gap-5 mt-10 sm:mt-20 overflow-y-auto max-h-[70vh]">
-          {newprodct.map(({ price, name, discount }) => {
+          {newprodct.map(({ price, name, discount, img }) => {
             return (
               <div className="w-full sm:w-60 flex flex-col">
                 <div className="relative w-full h-52 flex items-center justify-center bg-green-100 rounded-md overflow-hidden">
@@ -65,8 +75,8 @@ function Shop() {
                   </span>
                   <img
                     className="h-48 sm:h-[12rem] object-contain"
-                    src={bin}
-                    alt="Product 1"
+                    src={img}
+                    alt={name}
                   />
                 </div>
 

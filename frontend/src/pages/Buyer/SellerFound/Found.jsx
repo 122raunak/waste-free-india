@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import WasteItem from "../../../components/WasteItem/WasteItem";
-import paper from "../../../../public/Found/newspaper.png";
-import Navbar from "../../../components/Navbar/Navbar";
 import profile from "../../../../public/Profile/profile.png";
-import { X } from "lucide-react"; // ❌ icon
+import { X } from "lucide-react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 
@@ -19,8 +17,6 @@ const Found = () => {
           `${import.meta.env.VITE_BACKEND_URL}/Scrap/show/${id}/confirm/found`,
           { withCredentials: true }
         );
-        console.log(res.data.wasteItem);
-
         setWasteData(res.data.wasteItem);
       } catch (error) {
         console.error(error);
@@ -29,7 +25,12 @@ const Found = () => {
     loadWasteItem();
   }, [id]);
 
-  if (!wasteData) return <p>Loading...</p>;
+  if (!wasteData)
+    return (
+      <div className="h-screen flex items-center justify-center text-gray-600 text-lg">
+        Loading...
+      </div>
+    );
 
   let profileImgBase64 = profile;
   if (
@@ -44,59 +45,68 @@ const Found = () => {
   }
 
   return (
-    <>
-      <div className="min-h-screen w-full flex flex-col items-center mt-70 py-4 px-5 bg-white">
-        {showAll ? (
-          <div className="relative w-full flex flex-col items-center">
-            <button
-              onClick={() => setShowAll(false)}
-              className="absolute top-[-18px] right-[-14px] text-red-500 hover:text-red-500"
-            >
-              <X size={32} />
-            </button>
+    <div className="min-h-screen w-full flex items-center justify-center  px-4 py-8">
+      {showAll ? (
+        <div className="relative bg-white w-full max-w-lg rounded-2xl shadow-lg p-6 flex flex-col items-center">
+          <button
+            onClick={() => setShowAll(false)}
+            className="absolute top-3 right-3 text-red-500 hover:text-red-600 transition"
+          >
+            <X size={28} />
+          </button>
 
-            {/* Waste item card */}
-            <WasteItem
-              item={{
-                id: wasteData._id,
-                type: wasteData.category,
-                quantity: wasteData.quantity,
-                weight: wasteData.weight,
-                estimatedPrice: wasteData.estimatedPrice,
-                images: wasteData.images,
-              }}
-              showLearnMore={false}
+          <WasteItem
+            item={{
+              id: wasteData._id,
+              type: wasteData.category,
+              quantity: wasteData.quantity,
+              weight: wasteData.weight,
+              estimatedPrice: wasteData.estimatedPrice,
+              images: wasteData.images,
+            }}
+            showLearnMore={false}
+            classname="shadow-none border-none"
+          />
+
+          <div className="mt-4 text-center">
+            <p className="font-semibold text-lg text-gray-800">
+              A buyer has been found
+            </p>
+            <p className="text-sm text-gray-600 mt-1">
+              He will contact you soon to purchase your waste material.
+            </p>
+          </div>
+
+          <div className="flex flex-row gap-4 items-center mt-6 w-full bg-gray-50 rounded-xl p-4 shadow">
+            <img
+              src={profileImgBase64}
+              alt="profile"
+              className="w-16 h-16 rounded-full border object-cover"
             />
-
-            {/* Buyer message */}
-            <div className="px-4 py-3 w-full text-center font-sans">
-              <p className="font-semibold">A buyer has been found.</p>
-              <p>He will contact you soon to purchase your waste material.</p>
-            </div>
-
-            {/* Buyer profile */}
-            <div className="flex flex-row justify-between w-[90%] mt-6 bg-gray-50 rounded-lg py-3 px-4 items-center shadow ">
-              <img
-                src={profileImgBase64}
-                alt="profile"
-                className="w-16 h-16 rounded-full border object-cover"
-              />
-              <div className="flex flex-col text-sm text-gray-700">
-                <p>
-                  Name:{" "}
-                  {`${wasteData.assignedBuyer?.FullName?.FirstName} ${wasteData.assignedBuyer?.FullName?.LasteName}`}
-                </p>
-                <p>Contact: {wasteData.assignedBuyer?.ContactNo}</p>
-                <p>Address: {wasteData.assignedBuyer?.Address}</p>
-                <p>BusinessName: {wasteData.assignedBuyer?.BusinessName}</p>
-              </div>
+            <div className="flex flex-col text-sm text-gray-700">
+              <p>
+                <span className="font-semibold">Name:</span>{" "}
+                {`${wasteData.assignedBuyer?.FullName?.FirstName} ${wasteData.assignedBuyer?.FullName?.LasteName}`}
+              </p>
+              <p>
+                <span className="font-semibold">Contact:</span>{" "}
+                {wasteData.assignedBuyer?.ContactNo}
+              </p>
+              <p>
+                <span className="font-semibold">Address:</span>{" "}
+                {wasteData.assignedBuyer?.Address}
+              </p>
+              <p>
+                <span className="font-semibold">Business:</span>{" "}
+                {wasteData.assignedBuyer?.BusinessName}
+              </p>
             </div>
           </div>
-        ) : (
-          <p className="mt-10 text-gray-500">❌ Cancelled</p>
-        )}
-      </div>
-    </>
+        </div>
+      ) : (
+        <p className="text-gray-500 text-lg">❌ Cancelled</p>
+      )}
+    </div>
   );
 };
 

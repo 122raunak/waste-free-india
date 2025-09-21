@@ -58,7 +58,7 @@ function BuyerConfirm() {
         showLearnMore={false}
       />
 
-      <div className="w-full border border-black mt-5 rounded-md flex flex-col px-4 py-3">
+      <div className="w-full border border-black mt-5 rounded-md flex flex-col px-4 py-3  bg-white">
         <p className="text-lg font-semibold">Seller Information:</p>
         <p>
           <b>Name:</b> {wasteData.seller?.FullName?.FirstName}{" "}

@@ -46,7 +46,7 @@ function WasteDescription() {
       />
 
       {/* Description */}
-      <div className="w-full border border-black mt-5 rounded-md flex px-[10px] py-[20px]">
+      <div className="w-full border border-black mt-5 rounded-md flex px-[10px] py-[20px] bg-white ">
         {wasteData.description || "No description provided"}
       </div>
 
