@@ -1,10 +1,6 @@
-import React, { useContext, useEffect, useState } from "react";
-import logo from "../../assets/logo/logo.png";
-import BottomNav from "../../components/BottomNav/BottomNav";
+import React, { useState } from "react";
 import ImageGrid from "../../components/HomeImg/ImageGrid";
 import VideoPopup from "../../components/HomeImg/VideoPopup";
-import Navbar from "../../components/Navbar/Navbar";
-import { AppContext } from "../../context/AppContext";
 import RotatingText from "../../components/Animation/RotatingText";
 
 function Home() {
@@ -16,54 +12,41 @@ function Home() {
     setIsPopupOpen(true);
   };
 
-  const closePopup = () => {
-    setIsPopupOpen(false);
-    setPopupContent(null);
-  };
-
   return (
-    // <div className="relative min-h-[100dvh] overflow-hidden bg-gray-100 font-sans">
-    <>
-      <div className="relative z-10 h-full overflow-y-auto pb-20 px-[20px] py-[10px]">
-        <main className="text-center min-h-[100] flex flex-col items-center justify-center">
-          <p className="text-xl text-black font-normal mb-8 mt-6">
-            Click on the images to learn how to{" "}
-            <span className="inline-block w-auto mt-2">
-              <RotatingText
-                texts={["Reduce", "Reuse", "Recycle", "Manage"]}
-                mainClassName="px-2 sm:px-2 md:px-3 bg-green-400 text-white overflow-hidden py-0.5 sm:py-1 md:py-2 justify-center rounded-lg"
-                staggerFrom={"last"}
-                initial={{ y: "100%" }}
-                animate={{ y: 0 }}
-                exit={{ y: "-120%" }}
-                staggerDuration={0.025}
-                splitLevelClassName="overflow-hidden pb-0.5 sm:pb-1 md:pb-1"
-                transition={{ type: "spring", damping: 30, stiffness: 400 }}
-                rotationInterval={2000}
-              />
-            </span>
-            <span className=" ml-2 font-semibold text-purple-500 ">
-              {" "}
-              Waste!
-            </span>
-          </p>
+    <div className="min-h-[calc(100dvh-60px)] bg-[#f5f5f5]">
+      {/* Hero text */}
+      <div className="max-w-2xl mx-auto px-5 pt-8 pb-4 text-center">
+        <p className="text-base md:text-lg text-gray-700 font-normal mb-6">
+          Click on the images to learn how to{" "}
+          <span className="inline-flex items-center">
+            <RotatingText
+              texts={["Reduce", "Reuse", "Recycle", "Manage"]}
+              mainClassName="px-2 py-0.5 bg-green-400 text-white rounded-lg overflow-hidden justify-center"
+              staggerFrom="last"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "-120%" }}
+              staggerDuration={0.025}
+              splitLevelClassName="overflow-hidden pb-0.5"
+              transition={{ type: "spring", damping: 30, stiffness: 400 }}
+              rotationInterval={2000}
+            />
+          </span>{" "}
+          <span className="font-semibold text-purple-500 ml-1">Waste!</span>
+        </p>
 
-          <ImageGrid onImageClick={handleImageClick} />
+        {/* Image grid fills naturally, centered */}
+        <ImageGrid onImageClick={handleImageClick} />
 
-          <p className="text-black text-sm max-w-xl font-normal mx-auto leading-relaxed">
-            Learn smart <span className="font-bold">waste management</span> with
-            videos, an <span className="font-bold">AI chatbot</span> for your
-            questions, and <span className="font-bold">fun games</span> that
-            teach you how to handle waste.
-          </p>
-        </main>
+        <p className="text-gray-500 text-sm max-w-md mx-auto leading-relaxed mt-6">
+          Learn smart <span className="font-semibold text-gray-700">waste management</span> with videos,
+          an <span className="font-semibold text-gray-700">AI chatbot</span>, and{" "}
+          <span className="font-semibold text-gray-700">fun games</span>.
+        </p>
       </div>
 
-      {isPopupOpen && (
-        <VideoPopup onClose={closePopup} content={popupContent} />
-      )}
-      {/* // </div> */}
-    </>
+      {isPopupOpen && <VideoPopup onClose={() => { setIsPopupOpen(false); setPopupContent(null); }} content={popupContent} />}
+    </div>
   );
 }
 

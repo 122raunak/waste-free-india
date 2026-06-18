@@ -17,7 +17,6 @@ const wasteProductSchema = mongoose.Schema(
     },
     quantity: {
       type: Number,
-      required: true,
     },
     unit: {
       type: String,

@@ -1,198 +1,187 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { Edit2, Mail, Phone, MapPin, LogOut, List, Briefcase, MapIcon, CreditCard } from "lucide-react";
 import axios from "axios";
+import { AppContext } from "../../../context/AppContext";
+import defaultProfile from "../../../../public/Profile/profile.png";
+
+const categoryEmoji = { Paper: "📦", Plastic: "🥤", Metal: "⚙️", "E-waste": "💻" };
 
 function BuyerProfile() {
   const navigate = useNavigate();
-
-  const handleClick = () => {
-    navigate("/buyer/profile/edit");
-  };
-
-  const [formData, setFormData] = useState({
-    FullName: { FirstName: "", LastName: "" },
-    email: "",
-    ContactNo: "",
-    Address: "",
-    profileImg: "/Profile/profile.png",
-    BusinessName: "",
-    WasteCategories: [],
-    ServiceArea: "",
-    VerificationDocs: [],
-    BankDetails: {
-      accountNumber: "",
-      ifsc: "",
-      upiId: "",
-    },
-  });
+  const { logoutBuyer } = useContext(AppContext);
+  const [buyer, setBuyer] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchLoggedInUserData = async () => {
+    const fetch = async () => {
       try {
         const res = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}/buyer/auth/check`,
           { withCredentials: true }
         );
-
-        const user = res.data.buyer;
-        console.log("User fetched:", user);
-
-        // Convert buffer to base64 if profileImg exists
-        let profileImgBase64 = "/Profile/profile.png";
-        if (user.profileImg && user.profileImg.data) {
-          const binary = new Uint8Array(user.profileImg.data);
-          const base64String = btoa(
-            binary.reduce((acc, byte) => acc + String.fromCharCode(byte), "")
-          );
-          profileImgBase64 = `data:image/jpeg;base64,${base64String}`;
+        const u = res.data.buyer;
+        let profileImg = defaultProfile;
+        if (u.profileImg?.data) {
+          const binary = new Uint8Array(u.profileImg.data);
+          profileImg = `data:image/jpeg;base64,${btoa(
+            binary.reduce((a, b) => a + String.fromCharCode(b), "")
+          )}`;
         }
-
-        setFormData({
-          FullName: {
-            FirstName: user.FullName?.FirstName || "",
-            LastName: user.FullName?.LastName || "",
-          },
-          email: user.email || "NA",
-          ContactNo: user.ContactNo || "NA",
-          BusinessName: user.BusinessName || "NA",
-          ServiceArea: user.ServiceArea || "NA",
-          Address: user.Address || "NA",
-          WasteCategories: user.WasteCategories || [],
-          VerificationDocs: user.VerificationDocs || [],
-          profileImg: profileImgBase64,
-          BankDetails: user.BankDetails || {
-            accountNumber: "",
-            ifsc: "",
-            upiId: "",
-          },
-        });
-      } catch (error) {
-        console.error("Error fetching user data:", error);
+        setBuyer({ ...u, profileImg });
+      } catch {
+        navigate("/buyer/login");
+      } finally {
+        setLoading(false);
       }
     };
-
-    fetchLoggedInUserData();
+    fetch();
   }, []);
 
-  const userData = {
-    name:
-      `${formData.FullName.FirstName} ${formData.FullName.LastName}`.trim() ||
-      "NA",
-    email: formData.email,
-    contact: formData.ContactNo,
-    address: formData.Address,
-    profileImg: formData.profileImg,
-    BusinessName: formData.BusinessName,
-    WasteCategories: formData.WasteCategories,
-    ServiceArea: formData.ServiceArea,
-    VerificationDocs: formData.VerificationDocs,
-    BankDetails: formData.BankDetails,
+  const handleLogout = async () => {
+    try {
+      await axios.get(`${import.meta.env.VITE_BACKEND_URL}/buyer/auth/logout`, { withCredentials: true });
+    } catch {}
+    logoutBuyer();
+    navigate("/buyer/login");
   };
 
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-8 h-8 border-4 border-[#2196F3] border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+
+  const name = `${buyer?.FullName?.FirstName || ""} ${buyer?.FullName?.LastName || ""}`.trim() || "—";
+
   return (
-    <div className="relative z-[90] h-full mt-[60px] py-10 px-4 flex flex-col items-center w-full mb-10">
-      {/* Profile Section */}
-      <div className="flex flex-col items-center gap-6 mb-8">
-        <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-2 border-gray-300 flex items-center justify-center bg-gray-100 shadow-md">
-          <img
-            src={userData.profileImg}
-            alt="Profile"
-            className="w-full h-full object-cover"
-          />
-        </div>
+    <div className="min-h-[calc(100dvh-60px)] bg-[#f5f5f5] pb-8">
+      {/* Blue header */}
+      <div className="bg-gradient-to-r from-[#1976D2] to-[#64B5F6] h-32 md:h-40 w-full relative">
         <button
-          onClick={handleClick}
-          className="px-10 py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-2xl shadow-md transition-all duration-300 transform hover:scale-105"
+          onClick={() => navigate("/buyer/profile/edit")}
+          className="absolute top-4 right-4 flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white text-sm font-medium px-3 py-1.5 rounded-xl transition"
         >
-          Edit
+          <Edit2 size={14} /> Edit
         </button>
+        <span className="absolute bottom-4 left-4 text-xs text-white/60 font-medium uppercase tracking-wider">
+          WasteFreeIndia Partner
+        </span>
       </div>
 
-      {/* Buyer Info */}
-      <div className="flex flex-col gap-8 w-full overflow-y-auto max-h-[520px]">
-        {/* Basic Info */}
-        <div className="w-full max-w-md bg-white shadow-md rounded-xl p-6 space-y-4">
-          <div className="flex justify-between items-center gap-4">
-            <p className="text-gray-800">
-              <span className="font-semibold">Name:</span> {userData.name}
-            </p>
-            <p className="text-gray-800">
-              <span className="font-semibold">Contact:</span>{" "}
-              {userData.contact || "Not provided"}
-            </p>
+      <div className="max-w-4xl mx-auto px-4 md:px-8">
+        {/* Avatar */}
+        <div className="flex flex-col md:flex-row md:items-end gap-4 -mt-12 md:-mt-16 mb-6">
+          <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden border-4 border-white shadow-lg bg-gray-200 shrink-0">
+            <img src={buyer?.profileImg || defaultProfile} alt="profile" className="w-full h-full object-cover" />
           </div>
-          <p className="text-gray-800">
-            <span className="font-semibold">Email:</span> {userData.email}
-          </p>
-          <div>
-            <span className="font-semibold text-gray-800">Business Name:</span>
-            <p className="mt-1 bg-gray-50 p-3 rounded-md text-gray-700 shadow-sm">
-              {userData.BusinessName || "Not provided"}
-            </p>
-          </div>
-          <div>
-            <span className="font-semibold text-gray-800">Address:</span>
-            <p className="mt-1 bg-gray-50 p-3 rounded-md text-gray-700 shadow-sm">
-              {userData.address || "Not provided"}
-            </p>
+          <div className="md:mb-2">
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900">{name}</h1>
+            <p className="text-sm text-gray-500">{buyer?.BusinessName || "Scrap Buyer"}</p>
           </div>
         </div>
 
-        {/* Waste & Service Info */}
-        <div className="w-full max-w-md bg-white shadow-md rounded-xl p-6 space-y-4">
-          <div>
-            <span className="font-semibold text-gray-800">
-              Waste Categories:
-            </span>
-            <ul className="mt-2 list-disc list-inside text-gray-700">
-              {userData.WasteCategories?.length > 0 ? (
-                userData.WasteCategories.map((cat, i) => <li key={i}>{cat}</li>)
-              ) : (
-                <p className="text-gray-500">No categories specified</p>
-              )}
-            </ul>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Contact info */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Contact Info</h2>
+            <InfoRow icon={<Mail size={15} className="text-[#2196F3]" />} label="Email" value={buyer?.email} />
+            <InfoRow icon={<Phone size={15} className="text-[#2196F3]" />} label="Phone" value={buyer?.ContactNo || "Not set"} />
+            <InfoRow icon={<MapPin size={15} className="text-[#2196F3]" />} label="Address" value={buyer?.Address || "Not set"} />
+            <InfoRow icon={<MapIcon size={15} className="text-[#2196F3]" />} label="Service Area" value={buyer?.ServiceArea || "Not set"} />
           </div>
-          <div>
-            <span className="font-semibold text-gray-800">Service Area:</span>
-            <p className="mt-1 bg-gray-50 p-3 rounded-md text-gray-700 shadow-sm">
-              {userData.ServiceArea || "Not provided"}
-            </p>
+
+          {/* Business info */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Business</h2>
+            <InfoRow icon={<Briefcase size={15} className="text-[#2196F3]" />} label="Business Name" value={buyer?.BusinessName || "Not set"} />
+
+            {/* Waste categories */}
+            <div>
+              <p className="text-xs text-gray-400 mb-2">Waste Categories</p>
+              {buyer?.WasteCategories?.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {buyer.WasteCategories.map((cat) => (
+                    <span key={cat} className="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-medium">
+                      {categoryEmoji[cat]} {cat}
+                    </span>
+                  ))}
+                </div>
+              ) : <p className="text-sm text-gray-400">No categories set</p>}
+            </div>
           </div>
-        </div>
 
-        {/* Bank Details */}
-        <div className="w-full max-w-md bg-white shadow-md rounded-xl p-6 space-y-4">
-          <span className="font-semibold text-gray-800">Bank Details:</span>
-          <p className="text-gray-700">
-            <span className="font-medium">Account No:</span>{" "}
-            {userData.BankDetails?.accountNumber || "Not provided"}
-          </p>
-          <p className="text-gray-700">
-            <span className="font-medium">IFSC:</span>{" "}
-            {userData.BankDetails?.ifsc || "Not provided"}
-          </p>
-          <p className="text-gray-700">
-            <span className="font-medium">UPI ID:</span>{" "}
-            {userData.BankDetails?.upiId || "Not provided"}
-          </p>
-        </div>
-
-        {/* Verification Docs */}
-        <div className="w-full max-w-md bg-white shadow-md rounded-xl p-6 space-y-4">
-          <span className="font-semibold text-gray-800">
-            Verification Docs:
-          </span>
-          <ul className="mt-2 list-disc list-inside text-gray-700">
-            {userData.VerificationDocs?.length > 0 ? (
-              userData.VerificationDocs.map((doc, i) => <li key={i}>{doc}</li>)
+          {/* Bank details */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-3">
+            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
+              <CreditCard size={12} /> Bank Details
+            </h2>
+            {buyer?.BankDetails?.accountNumber ? (
+              <>
+                <InfoRow label="Account No" value={`••••${buyer.BankDetails.accountNumber.slice(-4)}`} />
+                <InfoRow label="IFSC" value={buyer.BankDetails.ifsc || "—"} />
+                <InfoRow label="UPI ID" value={buyer.BankDetails.upiId || "—"} />
+              </>
             ) : (
-              <p className="text-gray-500">No documents uploaded</p>
+              <p className="text-sm text-gray-400">No bank details added</p>
             )}
-          </ul>
+          </div>
+
+          {/* Quick actions */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-3">
+            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Quick Actions</h2>
+            <button
+              onClick={() => navigate("/buyer/listofwaste")}
+              className="w-full flex items-center justify-between p-3 bg-blue-50 rounded-xl hover:bg-blue-100 transition group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-[#2196F3]/20 flex items-center justify-center">
+                  <span className="text-base">🔍</span>
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-semibold text-gray-800">Browse Waste</p>
+                  <p className="text-xs text-gray-500">Find new listings</p>
+                </div>
+              </div>
+              <span className="text-[#2196F3] group-hover:translate-x-1 transition-transform">→</span>
+            </button>
+            <button
+              onClick={() => navigate("/buyer/my-accepted")}
+              className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-gray-200 flex items-center justify-center">
+                  <List size={15} className="text-gray-500" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-semibold text-gray-800">My Accepted</p>
+                  <p className="text-xs text-gray-500">View confirmed purchases</p>
+                </div>
+              </div>
+              <span className="text-gray-400 group-hover:translate-x-1 transition-transform">→</span>
+            </button>
+          </div>
         </div>
+
+        <button
+          onClick={handleLogout}
+          className="mt-5 flex items-center gap-2 text-sm text-red-500 hover:text-red-600 font-medium px-4 py-2 rounded-xl hover:bg-red-50 transition"
+        >
+          <LogOut size={15} /> Log Out
+        </button>
       </div>
     </div>
   );
 }
+
+const InfoRow = ({ icon, label, value }) => (
+  <div className="flex items-start gap-3">
+    {icon && <div className="mt-0.5 shrink-0">{icon}</div>}
+    <div>
+      <p className="text-xs text-gray-400">{label}</p>
+      <p className="text-sm font-medium text-gray-800 break-all">{value || "—"}</p>
+    </div>
+  </div>
+);
 
 export default BuyerProfile;

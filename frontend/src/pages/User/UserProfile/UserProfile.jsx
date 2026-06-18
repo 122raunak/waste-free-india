@@ -1,176 +1,149 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../../../components/Navbar/Navbar";
-import Button from "../../../components/Button/Button";
+import { Edit2, Mail, Phone, MapPin, LogOut, Package } from "lucide-react";
 import axios from "axios";
-import HamberMenu from "./HamberMenu";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
+import { AppContext } from "../../../context/AppContext";
+import defaultProfile from "../../../../public/Profile/profile.png";
 
 function UserProfile() {
   const navigate = useNavigate();
+  const { logoutUser } = useContext(AppContext);
 
-  const handleClick = () => {
-    navigate("/user/profile/edit");
-  };
-
-  const [formData, setFormData] = useState({
-    FullName: { FirstName: "", LastName: "" },
-    email: "",
-    contact: "",
-    address: "",
-    profileImg: "/Profile/profile.png",
-  });
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchLoggedInUserData = async () => {
+    const fetch = async () => {
       try {
         const res = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}/user/auth/check`,
           { withCredentials: true }
         );
-
-        const user = res.data.user;
-
-        // Convert buffer to base64 string if profileImg exists
-        let profileImgBase64 = "/Profile/profile.png";
-        if (user.profileImg && user.profileImg.data) {
-          const binary = new Uint8Array(user.profileImg.data);
-          const base64String = btoa(
-            binary.reduce((acc, byte) => acc + String.fromCharCode(byte), "")
-          );
-          profileImgBase64 = `data:image/jpeg;base64,${base64String}`;
+        const u = res.data.user;
+        let profileImg = defaultProfile;
+        if (u.profileImg?.data) {
+          const binary = new Uint8Array(u.profileImg.data);
+          profileImg = `data:image/jpeg;base64,${btoa(
+            binary.reduce((a, b) => a + String.fromCharCode(b), "")
+          )}`;
         }
-
-        setFormData({
-          FullName: {
-            FirstName: user.FullName?.FirstName || "",
-            LastName: user.FullName?.LastName || "",
-          },
-          email: user.email || "NA",
-          contact: user.ContactNo || "NA",
-          address: user.Address || "NA",
-          profileImg: profileImgBase64,
-        });
-      } catch (error) {
-        console.error("Error fetching user data:", error);
+        setUser({ ...u, profileImg });
+      } catch {
+        navigate("/user/login");
+      } finally {
+        setLoading(false);
       }
     };
-
-    fetchLoggedInUserData();
+    fetch();
   }, []);
 
-  const userData = {
-    name:
-      `${formData.FullName.FirstName} ${formData.FullName.LastName}`.trim() ||
-      "NA",
-    email: formData.email,
-    contact: formData.contact,
-    address: formData.address,
-    profileImg: formData.profileImg,
+  const handleLogout = async () => {
+    try {
+      await axios.get(`${import.meta.env.VITE_BACKEND_URL}/user/auth/logout`, { withCredentials: true });
+    } catch {}
+    logoutUser();
+    navigate("/user/login");
   };
 
-  const menuref = useRef(null);
-  const [menuOpen, setmenuOpen] = useState(false);
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-8 h-8 border-4 border-[#37B943] border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
 
-  useGSAP(() => {
-    if (menuOpen) {
-      gsap.to(menuref.current, {
-        x: 0,
-        duration: 0.6,
-        ease: "power3.out",
-      });
-    } else {
-      gsap.to(menuref.current, {
-        x: 300,
-        duration: 0.6,
-        ease: "power3.out",
-      });
-    }
-  }, [menuOpen]);
+  const name = `${user?.FullName?.FirstName || ""} ${user?.FullName?.LastName || ""}`.trim() || "—";
 
   return (
-    <>
-      <div className="relative z-[90] h-full mt-[20px]   py-10 px-4 flex flex-col items-center">
-        <div
-          className="text-4xl absolute right-8 -top-15 z-10"
-          onClick={() => {
-            setmenuOpen(!menuOpen);
-          }}
+    <div className="min-h-[calc(100dvh-60px)] bg-[#f5f5f5] pb-8">
+      {/* Green header banner */}
+      <div className="bg-gradient-to-r from-[#37B943] to-[#81E68D] h-32 md:h-40 w-full relative">
+        <button
+          onClick={() => navigate("/user/profile/edit")}
+          className="absolute top-4 right-4 flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white text-sm font-medium px-3 py-1.5 rounded-xl transition"
         >
-          <i
-            className={`fa-solid fa-bars transition-transform duration-300 ease-in-out ${
-              menuOpen ? "rotate-90" : ""
-            }`}
-          />
-        </div>
-        <div
-          className=" absolute right-0 -top-20 translate-x-[300px]"
-          ref={menuref}
-        >
-          <HamberMenu />
-        </div>
-
-        <div className="flex flex-col items-center gap-6 mb-8">
-          <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-2 border-gray-300 flex items-center justify-center bg-gray-100 shadow-md">
-            <img
-              src={userData.profileImg}
-              alt="Profile"
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <button
-            onClick={handleClick}
-            className="px-10 py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-2xl shadow-md transition-all duration-300 transform hover:scale-105"
-          >
-            Edit
-          </button>
-        </div>
-
-        <div className=" flex flex-col gap-8">
-          <div className="w-full max-w-md bg-white shadow-md rounded-xl p-6 space-y-4">
-            <div className="flex justify-between items-center">
-              <p className="text-gray-800">
-                <span className="font-semibold">Name:</span> {userData.name}
-              </p>
-              <p className="text-gray-800">
-                <span className="font-semibold">Contact:</span>{" "}
-                {userData.contact}
-              </p>
-            </div>
-            <p className="text-gray-800">
-              <span className="font-semibold">Email:</span> {userData.email}
-            </p>
-            <div>
-              <span className="font-semibold text-gray-800">Address:</span>
-              <p className="mt-1 bg-gray-50 p-3 rounded-md text-gray-700 shadow-sm">
-                {userData.address}
-              </p>
-            </div>
-          </div>
-
-          <div className="w-full max-w-md bg-white shadow-md rounded-xl p-6 text-center space-y-2">
-            <p className="font-medium text-gray-800">
-              You haven't listed any waste material for sale yet
-            </p>
-            {/* bad me work krna hai ispe */}
-            {/* <p className="text-sm text-gray-600">
-            Once a buyer has been found, we will notify you via message. You can
-            also check the status directly on our web app.
-          </p> */}
-          </div>
-        </div>
-
-        {/* <div className="mt-4">
-          <Button
-            text="Log Out"
-            className="bg-red-600 hover:bg-red-700 w-40 rounded-lg shadow-md transition-transform duration-200 hover:scale-105"
-            link="/user/logout"
-          />
-        </div> */}
+          <Edit2 size={14} /> Edit
+        </button>
       </div>
-    </>
+
+      <div className="max-w-4xl mx-auto px-4 md:px-8">
+        {/* Avatar — overlaps the banner */}
+        <div className="flex flex-col md:flex-row md:items-end gap-4 -mt-12 md:-mt-16 mb-6">
+          <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden border-4 border-white shadow-lg bg-gray-200 shrink-0">
+            <img src={user?.profileImg || defaultProfile} alt="profile" className="w-full h-full object-cover" />
+          </div>
+          <div className="md:mb-2">
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900">{name}</h1>
+            <p className="text-sm text-gray-500">Waste Seller</p>
+          </div>
+        </div>
+
+        {/* Two-column layout on desktop */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Contact info */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Contact Info</h2>
+            <InfoRow icon={<Mail size={15} className="text-[#37B943]" />} label="Email" value={user?.email} />
+            <InfoRow icon={<Phone size={15} className="text-[#37B943]" />} label="Phone" value={user?.ContactNo || "Not set"} />
+            <InfoRow icon={<MapPin size={15} className="text-[#37B943]" />} label="Address" value={user?.Address || "Not set"} />
+          </div>
+
+          {/* Listings summary */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-3">
+            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Your Activity</h2>
+            <button
+              onClick={() => navigate("/user/my-listings")}
+              className="w-full flex items-center justify-between p-3 bg-[#f0fbf0] rounded-xl hover:bg-[#e2f8e4] transition group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-[#37B943]/20 flex items-center justify-center">
+                  <Package size={16} className="text-[#37B943]" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-semibold text-gray-800">My Listings</p>
+                  <p className="text-xs text-gray-500">View all your waste listings</p>
+                </div>
+              </div>
+              <span className="text-[#37B943] text-lg group-hover:translate-x-1 transition-transform">→</span>
+            </button>
+
+            <button
+              onClick={() => navigate("/user/sellingpage/sellscrap")}
+              className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-gray-200 flex items-center justify-center">
+                  <span className="text-base">♻️</span>
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-semibold text-gray-800">Sell Waste</p>
+                  <p className="text-xs text-gray-500">Create a new listing</p>
+                </div>
+              </div>
+              <span className="text-gray-400 text-lg group-hover:translate-x-1 transition-transform">→</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className="mt-5 flex items-center gap-2 text-sm text-red-500 hover:text-red-600 font-medium px-4 py-2 rounded-xl hover:bg-red-50 transition"
+        >
+          <LogOut size={15} /> Log Out
+        </button>
+      </div>
+    </div>
   );
 }
+
+const InfoRow = ({ icon, label, value }) => (
+  <div className="flex items-start gap-3">
+    <div className="mt-0.5 shrink-0">{icon}</div>
+    <div>
+      <p className="text-xs text-gray-400">{label}</p>
+      <p className="text-sm font-medium text-gray-800 break-all">{value || "—"}</p>
+    </div>
+  </div>
+);
 
 export default UserProfile;

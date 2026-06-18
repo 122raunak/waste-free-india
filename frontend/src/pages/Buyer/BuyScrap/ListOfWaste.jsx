@@ -1,68 +1,113 @@
 import React, { useEffect, useState } from "react";
-import WasteItem from "../../../components/WasteItem/WasteItem";
-import Navbar from "../../../components/Navbar/Navbar";
-import axios from "axios";
+import { Search, SlidersHorizontal, X } from "lucide-react";
+import WasteCard from "../../../components/WasteCard/WasteCard";
+import api from "../../../lib/api";
+
+const CATEGORIES = ["All", "Paper", "Plastic", "Metal", "E-waste"];
 
 function ListOfWaste() {
-  const [wasteItem, setWasteItem] = useState([]);
+  const [wasteItems, setWasteItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const loadAllWasteItems = async () => {
+    const load = async () => {
       try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/Scrap/show`,
-          { withCredentials: true }
-        );
-        setWasteItem(res.data.wasteItems);
-      } catch (error) {}
+        setLoading(true);
+        const res = await api.get("/Scrap/show");
+        setWasteItems(res.data.wasteItems || []);
+      } catch (err) {
+        setError("Failed to load listings. Please try again.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     };
-    loadAllWasteItems();
+    load();
   }, []);
 
-  const [search, setSearch] = useState("");
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-  };
-
-  const NewWasteItem = wasteItem.filter((p) =>
-    p.category.toLowerCase().includes(search)
-  );
+  const filtered = wasteItems.filter((item) => {
+    const matchesSearch =
+      item.title?.toLowerCase().includes(search.toLowerCase()) ||
+      item.category?.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory =
+      activeCategory === "All" || item.category === activeCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
-    <div className="h-[80vh] w-full font-sans flex flex-col  px-2">
-      <div className="bg-zinc-700 w-full h-16 flex items-center px-4 sm:px-8 rounded-md gap-2 sm:gap-4">
-        <form
-          onSubmit={handleSubmit}
-          className="flex w-full items-center gap-2"
-        >
+    <div className="min-h-[calc(100dvh-60px)] w-full bg-[#f5f5f5] flex flex-col">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-4 pt-4 pb-3 sticky top-0 z-10">
+        <h1 className="text-lg font-bold text-gray-900 mb-3">Available Waste</h1>
+
+        {/* Search bar */}
+        <div className="relative">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
-            className="w-full h-10 sm:h-12 rounded-md px-2 bg-white text-sm sm:text-base"
             type="text"
             value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-            }}
-            placeholder="Search products..."
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by title or category..."
+            className="w-full h-10 pl-9 pr-9 rounded-xl bg-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-[#81E68D] transition-all"
           />
-          <button
-            type="submit"
-            className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-md "
-          >
-            <i className="text-white text-xl sm:text-2xl fa-solid fa-magnifying-glass"></i>
-          </button>
-        </form>
+          {search && (
+            <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <X size={14} />
+            </button>
+          )}
+        </div>
+
+        {/* Category filter chips */}
+        <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar pb-1">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`shrink-0 text-xs px-3 py-1.5 rounded-full font-medium transition-all border
+                ${activeCategory === cat
+                  ? "bg-[#41c45a] text-white border-[#41c45a]"
+                  : "bg-white text-gray-600 border-gray-200 hover:border-[#81E68D]"
+                }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
       </div>
-      <div
-        className="overflow-y-auto px-4 sm:px-6 py-6 no-scrollbar space-y-4 mt-10"
-        style={{ height: "80vh" }}
-      >
-        {wasteItem.length > 0 ? (
-          NewWasteItem.map((item) => (
-            <WasteItem key={item.id || item._id} item={item} showLearnMore />
-          ))
+
+      {/* Content */}
+      <div className="flex-1 px-4 py-4 space-y-3 overflow-y-auto">
+        {loading ? (
+          <div className="flex flex-col gap-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white rounded-xl h-28 animate-pulse border border-gray-100" />
+            ))}
+          </div>
+        ) : error ? (
+          <div className="text-center py-16 text-red-500">{error}</div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-16">
+            <p className="text-4xl mb-3">♻️</p>
+            <p className="text-gray-500 font-medium">No listings found</p>
+            <p className="text-gray-400 text-sm mt-1">
+              {search || activeCategory !== "All" ? "Try different filters" : "Check back later"}
+            </p>
+          </div>
         ) : (
-          <p className="text-center text-gray-500 mt-20">loading....</p>
+          <>
+            <p className="text-xs text-gray-400 pb-1">{filtered.length} listing{filtered.length !== 1 ? "s" : ""} found</p>
+            {filtered.map((item) => (
+              <WasteCard
+                key={item._id}
+                item={item}
+                showLearnMore
+                linkTo={`/buyer/listofwaste/${item._id}`}
+              />
+            ))}
+          </>
         )}
       </div>
     </div>

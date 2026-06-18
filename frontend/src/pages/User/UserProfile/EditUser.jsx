@@ -1,282 +1,202 @@
-import React, { useState, useRef, useEffect, use } from "react";
-import profile from "../../../../public/Profile/profile.png";
-import InputField from "../../../components/Fields/InputField.jsx";
-import Button from "../../../components/Fields/Button.jsx";
-import Navbar from "../../../Components/Navbar/Navbar.jsx";
-import axios from "axios";
+import React, { useState, useRef, useEffect } from "react";
+import { ArrowLeft, Camera } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import imageCompression from "browser-image-compression";
-import LocationSearchpanel from "../../..//components/SearchPanal/LocationSearchpanel";
-
+import LocationSearchpanel from "../../../components/SearchPanal/LocationSearchpanel";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-// reduce th esize of img
+import defaultProfile from "../../../../public/Profile/profile.png";
 
 function EditUser() {
-  const [AddressSeggestion, setAddressSeggestion] = useState([]);
-  const [ImgData, setImgData] = useState(null);
-  const [panelOpen, setPanelOpen] = useState(false);
-
   const navigate = useNavigate();
-
-  const [formData, setFormData] = useState({
-    FullName: {
-      FirstName: "",
-      LastName: "",
-    },
-    ContactNo: "",
-    Address: "",
-    profileImg: "",
-  });
-
-  const [profileImage, setProfileImage] = useState(profile);
   const fileInputRef = useRef(null);
   const panelRef = useRef(null);
-  const closeRef = useRef(null);
+
+  const [profileImage, setProfileImage] = useState(defaultProfile);
+  const [ImgData, setImgData] = useState(null);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [AddressSeggestion, setAddressSeggestion] = useState([]);
+  const [saving, setSaving] = useState(false);
+
+  const [formData, setFormData] = useState({
+    FullName: { FirstName: "", LastName: "" },
+    ContactNo: "", Address: "",
+  });
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/user/auth/check`,
+          { withCredentials: true }
+        );
+        const u = res.data.user;
+        setFormData({
+          FullName: { FirstName: u.FullName?.FirstName || "", LastName: u.FullName?.LastName || "" },
+          ContactNo: u.ContactNo || "",
+          Address: u.Address || "",
+        });
+      } catch {}
+    };
+    load();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     if (name === "FirstName" || name === "LastName") {
-      setFormData((prev) => ({
-        ...prev,
-        FullName: {
-          ...prev.FullName,
-          [name]: value,
-        },
-      }));
+      setFormData((p) => ({ ...p, FullName: { ...p.FullName, [name]: value } }));
     } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const formDataToSend = new FormData();
-    formDataToSend.append("profileImg", ImgData);
-    formDataToSend.append("FirstName", formData.FullName.FirstName);
-    formDataToSend.append("LastName", formData.FullName.LastName);
-    formDataToSend.append("ContactNo", formData.ContactNo);
-    formDataToSend.append("Address", formData.Address);
-
-    try {
-      navigate("/user/profile");
-
-      await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/user/profile/edit`,
-        formDataToSend,
-        {
-          withCredentials: true,
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleImageClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handlAddresspChange = async (e) => {
-    try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/map/get-suggestion`,
-        {
-          params: { query: formData.Address },
-          withCredentials: true,
-        }
-      );
-      console.log(res.data.predictions);
-
-      setAddressSeggestion(res.data.predictions);
-    } catch (err) {
-      console.error(err);
+      setFormData((p) => ({ ...p, [name]: value }));
     }
   };
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const compressed = await imageCompression(file, {
-        maxSizeMB: 1,
-        maxWidthOrHeight: 800,
-      });
-      const imageUrl = URL.createObjectURL(compressed);
-      setProfileImage(imageUrl);
-      setImgData(compressed);
+    if (!file) return;
+    const compressed = await imageCompression(file, { maxSizeMB: 1, maxWidthOrHeight: 800 });
+    setProfileImage(URL.createObjectURL(compressed));
+    setImgData(compressed);
+  };
+
+  const handleAddressChange = async () => {
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/map/get-suggestion`,
+        { params: { query: formData.Address }, withCredentials: true }
+      );
+      setAddressSeggestion(res.data.predictions || []);
+    } catch {}
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const fd = new FormData();
+      if (ImgData) fd.append("profileImg", ImgData);
+      fd.append("FirstName", formData.FullName.FirstName);
+      fd.append("LastName", formData.FullName.LastName);
+      fd.append("ContactNo", formData.ContactNo);
+      fd.append("Address", formData.Address);
+
+      await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/user/profile/edit`,
+        fd,
+        { withCredentials: true, headers: { "Content-Type": "multipart/form-data" } }
+      );
+      navigate("/user/profile");
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
     }
   };
 
-  useEffect(() => {
-    const LoggedInuserData = async () => {
-      try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/user/auth/check`,
-          {
-            withCredentials: true,
-          }
-        );
-        const user = {
-          FullName: {
-            FirstName: res.data.user.FullName.FirstName,
-            LastName: res.data.user.FullName.LastName,
-          },
-          ContactNo: res.data.user.ContactNo,
-          Address: res.data.user.Address,
-          profileImg: res.data.user.profileImg,
-        };
-
-        setFormData(user);
-      } catch (error) {}
-    };
-    LoggedInuserData();
-  }, []);
-
   useGSAP(() => {
-    if (panelOpen) {
-      gsap.to(panelRef.current, {
-        height: "65%",
-        padding: 24,
-      });
-      gsap.to(closeRef.current, {
-        opacity: 1,
-      });
-    } else {
-      gsap.to(panelRef.current, {
-        height: "0%",
-        padding: 0,
-      });
-      gsap.to(closeRef.current, {
-        opacity: 0,
-      });
-    }
+    if (!panelRef.current) return;
+    gsap.to(panelRef.current, { height: panelOpen ? "55%" : "0%", padding: panelOpen ? 16 : 0, duration: 0.3 });
   }, [panelOpen]);
 
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (
-        panelRef.current &&
-        !panelRef.current.contains(e.target) &&
-        e.target.name !== "Address"
-      ) {
+    const handleOutside = (e) => {
+      if (panelRef.current && !panelRef.current.contains(e.target) && e.target.name !== "Address") {
         setPanelOpen(false);
       }
     };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
   }, []);
 
   return (
-    <div className="w-full flex flex-col items-center px-6 py-10">
-      {/* Profile Picture */}
-      <div className="flex flex-col items-center mb-6">
-        <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-green-500 shadow-md">
-          <img
-            src={profileImage}
-            alt="profile"
-            className="w-full h-full object-cover"
-          />
-        </div>
-
-        {/* Hidden file input */}
-
-        <p
-          className="text-blue-600 text-sm mt-2 cursor-pointer hover:underline"
-          onClick={handleImageClick}
-        >
-          Edit picture
-        </p>
+    <div className="min-h-[calc(100dvh-60px)] bg-[#f5f5f5]">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 sticky top-0 z-10">
+        <button onClick={() => navigate(-1)} className="p-1 -ml-1 rounded-lg hover:bg-gray-100">
+          <ArrowLeft size={20} className="text-gray-700" />
+        </button>
+        <h1 className="font-bold text-gray-900">Edit Profile</h1>
       </div>
 
-      {/* Title */}
-      <h2 className="font-semibold text-lg mb-4 w-full text-left text-gray-800">
-        Edit Your Details
-      </h2>
-
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="flex flex-col w-full gap-4">
-        <input
-          type="file"
-          accept="image/*"
-          ref={fileInputRef}
-          onChange={handleImageChange}
-          className="hidden"
-        />
-        <div className=" flex gap-2">
-          <InputField
-            type="text"
-            placeholder="First Name"
-            name="FirstName"
-            value={formData.FullName.FirstName}
-            onChange={handleChange}
-            className="bg-white border border-gray-300 rounded-lg px-3 py-2 shadow-sm"
-          />
-          <InputField
-            type="text"
-            placeholder="Laste Name"
-            value={formData.FullName.LastName}
-            name="LastName"
-            onChange={handleChange}
-            className="bg-white border border-gray-300 rounded-lg px-3 py-2 shadow-sm"
-          />
+      <form onSubmit={handleSubmit} className="max-w-xl mx-auto px-4 py-6 space-y-5">
+        {/* Profile picture */}
+        <div className="flex flex-col items-center">
+          <div className="relative">
+            <div className="w-24 h-24 rounded-2xl overflow-hidden border-4 border-white shadow-md bg-gray-200">
+              <img src={profileImage} alt="profile" className="w-full h-full object-cover" />
+            </div>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute -bottom-2 -right-2 w-8 h-8 bg-[#37B943] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#2ea038] transition"
+            >
+              <Camera size={14} />
+            </button>
+          </div>
+          <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageChange} className="hidden" />
+          <p className="text-xs text-gray-400 mt-3">Tap the camera to change photo</p>
         </div>
 
-        <InputField
-          type="number"
-          placeholder="Contact"
-          name="ContactNo"
-          value={formData.ContactNo}
-          onChange={handleChange}
-          className="bg-white/80 border border-gray-300 rounded-lg px-3 py-2 shadow-sm"
-          pattern="[0-9]*"
-          inputMode="numeric"
-        />
+        {/* Fields */}
+        <Section title="Personal Info">
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="First Name" name="FirstName" value={formData.FullName.FirstName} onChange={handleChange} />
+            <Field label="Last Name" name="LastName" value={formData.FullName.LastName} onChange={handleChange} />
+          </div>
+          <Field label="Contact Number" name="ContactNo" type="tel" value={formData.ContactNo} onChange={handleChange} />
+          <div>
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Address</label>
+            <textarea
+              name="Address"
+              rows={3}
+              value={formData.Address}
+              onChange={(e) => { handleChange(e); handleAddressChange(); }}
+              onClick={() => setPanelOpen(true)}
+              placeholder="Your address"
+              className="w-full bg-gray-50 rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-700 resize-none focus:outline-none focus:ring-2 focus:ring-[#37B943]"
+            />
+          </div>
+        </Section>
 
-        <textarea
-          name="Address"
-          placeholder="Address"
-          value={formData.Address}
-          onChange={(e) => {
-            handleChange(e);
-            handlAddresspChange();
-          }}
-          rows="3"
-          className="w-full bg-white/80 border border-gray-300 rounded-lg px-3 py-2 text-base text-gray-700 shadow-sm resize-none"
-          onClick={() => {
-            setPanelOpen(true);
-          }}
-        />
-
-        <Button
-          text="Update Details"
-          type="submit"
-          className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 rounded-full shadow-md transition"
-        />
-      </form>
-      {/* <Navbar /> */}
-      <div>
-        <div
-          ref={panelRef}
-          className="bg-white w-full absolute -top-5 left-0 z-444 h-0 overflow-hidden shadow-lg rounded-t-2xl"
+        <button
+          type="submit" disabled={saving}
+          className="w-full h-12 bg-[#37B943] hover:bg-[#2ea038] text-white font-semibold rounded-xl transition-all disabled:opacity-60 flex items-center justify-center gap-2"
         >
-          <LocationSearchpanel
-            AddressSeggestion={AddressSeggestion}
-            setFormData={setFormData}
-            setPanelOpen={setPanelOpen}
-          />
-        </div>
+          {saving && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+          {saving ? "Saving..." : "Save Changes"}
+        </button>
+      </form>
+
+      {/* Address panel */}
+      <div
+        ref={panelRef}
+        className="bg-white w-full fixed bottom-0 left-0 z-50 h-0 overflow-hidden shadow-2xl rounded-t-2xl"
+      >
+        <LocationSearchpanel
+          AddressSeggestion={AddressSeggestion}
+          setFormData={setFormData}
+          setPanelOpen={setPanelOpen}
+        />
       </div>
     </div>
   );
 }
+
+const Section = ({ title, children }) => (
+  <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+    <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{title}</h2>
+    {children}
+  </div>
+);
+
+const Field = ({ label, name, type = "text", value, onChange, disabled }) => (
+  <div>
+    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">{label}</label>
+    <input
+      type={type} name={name} value={value || ""} onChange={onChange} disabled={disabled}
+      className="w-full h-11 bg-gray-50 rounded-xl border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#37B943] disabled:opacity-60 disabled:cursor-not-allowed"
+    />
+  </div>
+);
 
 export default EditUser;

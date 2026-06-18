@@ -1,90 +1,80 @@
-import React, { useContext, useEffect } from "react";
-import { Link, NavLink, Outlet } from "react-router-dom";
-import Icons from "./Icons";
-import { Home, MessageCircle, Gamepad2, Recycle, User } from "lucide-react";
+import React, { useContext } from "react";
+import { NavLink, Outlet } from "react-router-dom";
+import { Home, MessageCircle, Gamepad2, Recycle, User, List } from "lucide-react";
 import { AppContext } from "../../context/AppContext";
 
-const Navbar = () => {
-  const getLinkClasses = (isActive) =>
-    isActive ? "text-[#81E68D] font-semibold" : "text-black";
+const Icons = ({ icon: Icon, title }) => (
+  <div className="flex flex-col items-center justify-center gap-0.5 py-1 px-2 min-w-[48px]">
+    <Icon size={20} strokeWidth={1.8} />
+    <span className="text-[10px] leading-tight font-medium whitespace-nowrap">{title}</span>
+  </div>
+);
 
+const Navbar = () => {
   const { sellerIon, BuyerIcon } = useContext(AppContext);
 
-  useEffect(() => {
-    console.log("form lgoin page", sellerIon);
-    if (sellerIon) {
-      localStorage.setItem("sellerIon", sellerIon);
-    }
-  }, []);
-  useEffect(() => {
-    console.log("form lgoin page BuyerIcon", BuyerIcon);
-    if (BuyerIcon) {
-      localStorage.setItem("BuyerIcon", BuyerIcon);
-    }
-  }, []);
-
-  const localData = localStorage.getItem("sellerIon");
-  console.log("value of localdata", localData);
-  const localData2 = localStorage.getItem("BuyerIcon");
-  console.log("value of localdata", localData2);
+  const cls = ({ isActive }) =>
+    isActive ? "text-[#41c45a] font-semibold" : "text-gray-500 hover:text-gray-800 transition-colors";
 
   return (
     <>
-      {/* zindex 100 */}
-      <div className="fixed flex flex-row items-center justify-around w-full h-[64px] bg-white bottom-0 z-[100] border-t">
-        <NavLink
-          to="/user/home"
-          end
-          className={({ isActive }) => getLinkClasses(isActive)}
-        >
+      <div className="fixed flex flex-row items-center justify-around w-full h-[60px] bg-white bottom-0 z-[100] border-t border-gray-200 shadow-[0_-2px_8px_rgba(0,0,0,0.06)]">
+
+        {/* Always visible: Home */}
+        <NavLink to="/user/home" end className={cls}>
           <Icons icon={Home} title="Home" />
         </NavLink>
 
-        <NavLink
-          to="/user/chatbot"
-          end
-          className={({ isActive }) => getLinkClasses(isActive)}
-        >
-          <Icons icon={MessageCircle} title="Chat Bot" />
+        {/* Always visible: Chatbot */}
+        <NavLink to="/user/chatbot" end className={cls}>
+          <Icons icon={MessageCircle} title="Chat" />
         </NavLink>
 
-        <NavLink
-          to="/user/game"
-          end
-          className={({ isActive }) => getLinkClasses(isActive)}
-        >
-          <Icons icon={Gamepad2} title="Games" />
-        </NavLink>
-
-        <div className={`${localData ? "block" : "hidden"}`}>
-          <NavLink
-            end
-            to="/user/sellingpage"
-            className={({ isActive }) => getLinkClasses(isActive)}
-          >
-            <Icons icon={Recycle} title="Sell Waste" />
+        {/* Seller: Sell Waste */}
+        {sellerIon && (
+          <NavLink to="/user/sellingpage" end className={cls}>
+            <Icons icon={Recycle} title="Sell" />
           </NavLink>
-        </div>
+        )}
 
-        <div className={`${localData2 ? "block" : "hidden"}`}>
-          <NavLink
-            end
-            to="/buyer/listofwaste"
-            className={({ isActive }) => getLinkClasses(isActive)}
-          >
-            <Icons icon={Recycle} title="Buy Waste" />
+        {/* Seller: My Listings */}
+        {sellerIon && (
+          <NavLink to="/user/my-listings" end className={cls}>
+            <Icons icon={List} title="Listings" />
           </NavLink>
-        </div>
+        )}
 
-        <NavLink
-          to={`/${localData2 ? "buyer" : "user"}/profile`}
-          end
-          className={({ isActive }) => getLinkClasses(isActive)}
-        >
+        {/* Buyer: Browse Waste */}
+        {BuyerIcon && (
+          <NavLink to="/buyer/listofwaste" end className={cls}>
+            <Icons icon={Recycle} title="Browse" />
+          </NavLink>
+        )}
+
+        {/* Buyer: My Accepted */}
+        {BuyerIcon && (
+          <NavLink to="/buyer/my-accepted" end className={cls}>
+            <Icons icon={List} title="Accepted" />
+          </NavLink>
+        )}
+
+        {/* Games - only for users */}
+        {!BuyerIcon && (
+          <NavLink to="/user/game" end className={cls}>
+            <Icons icon={Gamepad2} title="Games" />
+          </NavLink>
+        )}
+
+        {/* Profile */}
+        <NavLink to={BuyerIcon ? "/buyer/profile" : "/user/profile"} end className={cls}>
           <Icons icon={User} title="Profile" />
         </NavLink>
       </div>
-      <Outlet />
+
+      {/* Page content with bottom padding so it's not hidden by navbar */}
+      <div className="pb-[72px] w-full">
+        <Outlet />
+      </div>
     </>
   );
 };

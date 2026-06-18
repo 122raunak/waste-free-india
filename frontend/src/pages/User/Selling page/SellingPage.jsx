@@ -1,127 +1,128 @@
 import React, { useEffect, useRef, useState } from "react";
-import { MapPin, ChevronDown } from "lucide-react";
-import ewaste from "../../../../public/SellingPage/ewaste.png";
-import plastic from "../../../../public/SellingPage/plastic.png";
-import paper from "../../../../public/SellingPage/paper.png";
-import metal from "../../../../public/SellingPage/metal.png";
-import Button from "../../../components/Button/Button";
-import ScrapCard from "../../../components/SellerPage/ScrapCard";
-import Navbar from "../../../components/Navbar/Navbar";
+import { MapPin, TrendingUp, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 
+const SCRAP_TYPES = [
+  { emoji: "📄", title: "Paper", desc: "Newspapers, cardboard, books" },
+  { emoji: "🥤", title: "Plastic", desc: "Bottles, containers, bags" },
+  { emoji: "⚙️", title: "Metal", desc: "Iron, copper, aluminium" },
+  { emoji: "💻", title: "E-waste", desc: "Electronics, batteries, cables" },
+];
+
+const RATES = [
+  { item: "Metal", rate: "₹60 – ₹70", unit: "per kg" },
+  { item: "Paper", rate: "₹20 – ₹30", unit: "per kg" },
+  { item: "Plastic Bottles", rate: "₹5 – ₹15", unit: "per piece" },
+  { item: "E-waste", rate: "₹100+", unit: "per kg" },
+];
+
 const SellingPage = () => {
-  const [FormData, setFormData] = useState({
-    address: "",
-  });
-  const dataref = useRef(null);
+  const navigate = useNavigate();
+  const [address, setAddress] = useState("Loading...");
+  const tickerRef = useRef(null);
+
   useEffect(() => {
-    const fetchLoggedInUserData = async () => {
+    const fetch = async () => {
       try {
         const res = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}/user/auth/check`,
           { withCredentials: true }
         );
-
-        const user = res.data.user;
-
-        setFormData({
-          address: user.Address || "NA",
-        });
-      } catch (error) {
-        console.error("Error fetching user data:", error);
+        setAddress(res.data.user?.Address || "Address not set — edit your profile");
+      } catch {
+        setAddress("Could not load address");
       }
     };
-
-    fetchLoggedInUserData();
+    fetch();
   }, []);
 
   useGSAP(() => {
-    gsap.from(dataref.current, {
-      color: "red",
-      duration: 0.7,
+    gsap.to(tickerRef.current, {
+      color: "#37B943",
+      duration: 0.8,
       repeat: -1,
       yoyo: true,
+      ease: "sine.inOut",
     });
-  });
+  }, []);
+
   return (
-    <>
-      <div className="min-h-[80%] w-full   py-6 px-4 flex flex-col items-center mt-10">
-        <div
-          ref={dataref}
-          className=" text-black font-semibold px-4 py-2 text-[12px] text-center "
+    <div className="min-h-[calc(100dvh-60px)] bg-[#f5f5f5] pb-8">
+
+      {/* Hero banner */}
+      <div className="bg-gradient-to-br from-[#37B943] to-[#81E68D] px-5 pt-8 pb-14 text-center">
+        <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
+          Sell Your Scrap
+        </h1>
+        <p className="text-white/80 text-sm md:text-base max-w-xs mx-auto">
+          Your scrap, their livelihood — together for a cleaner India
+        </p>
+        <button
+          onClick={() => navigate("/user/sellingpage/sellscrap")}
+          className="mt-5 inline-flex items-center gap-2 bg-white text-[#37B943] font-bold px-6 py-3 rounded-xl shadow-md hover:shadow-lg hover:scale-105 active:scale-[0.98] transition-all text-sm md:text-base"
         >
-          The garbage collector will decide the final price for your materials
-          right in front of you. You can also see the current prices for
-          different items listed below.
+          List Waste Now <ArrowRight size={16} />
+        </button>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 md:px-8 -mt-6">
+        {/* Location card */}
+        <div className="bg-white rounded-2xl shadow-md p-4 flex items-center gap-3 mb-6 border border-gray-100">
+          <div className="w-10 h-10 rounded-xl bg-[#e8f8ea] flex items-center justify-center shrink-0">
+            <MapPin size={18} className="text-[#37B943]" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs text-gray-400 font-medium">Your pickup location</p>
+            <p className="text-sm text-gray-700 font-medium truncate">{address}</p>
+          </div>
         </div>
 
-        <div className="flex flex-col justify-center items-center w-full max-w-md z-50">
-          <div className="flex border rounded-2xl px-4 py-2 w-full bg-white shadow-sm cursor-pointer justify-center items-center min-h-12">
-            <MapPin size={30} color="#81E68D" />
-            <div className="ml-4 flex-1">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-800">
-                  Your Location
-                </span>
-              </div>
-              <p className="text-xs text-gray-500">{FormData.address}</p>
-            </div>
-          </div>
+        {/* Disclaimer ticker */}
+        <p ref={tickerRef} className="text-xs text-center text-gray-500 mb-6 px-2">
+          ⚠️ The final price is decided by the collector in person. Listed rates are approximate.
+        </p>
 
-          <div>
-            <div className=" w-[400px] overflow-y-auto max-h-[600px]  overflow-x-auto">
-              <div className="flex flex-col items-center justify-center text-center p-4 w-full">
-                <h2 className="text-2xl mt-8 font-bold">
-                  SELL YOUR <span className="text-green-600">SCRAP NOW</span>
-                </h2>
-                <p className="text-lg text-gray-700">
-                  Your scrap, their livelihood <br />
-                  together for a cleaner India
-                </p>
-                <Button
-                  text="Sell Now"
-                  className="w-[150px] mt-3"
-                  link="/user/sellingpage/sellscrap"
-                />
-              </div>
-              <div className="w-full flex flex-col items-center justify-center py-8">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-center mb-6 w-full flex items-center">
-                  <span className="flex-grow border-t border-dashed border-black"></span>
-                  <span className="mx-3">Types of Scrap You Can Sell</span>
-                  <span className="flex-grow border-t border-dashed border-black"></span>
-                </h2>
-                <div className="w-full overflow-x-auto scrollbar-hide">
-                  <div className="flex gap-4 px-4">
-                    <ScrapCard image={plastic} title={"Plastic"} />
-                    <ScrapCard image={paper} title={"Paper"} />
-                    <ScrapCard image={ewaste} title={"E-Waste"} />
-                    <ScrapCard image={metal} title={"Metal"} />
-                  </div>
+        {/* Scrap type cards */}
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Types You Can Sell</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+          {SCRAP_TYPES.map((s) => (
+            <button
+              key={s.title}
+              onClick={() => navigate("/user/sellingpage/sellscrap")}
+              className="bg-white rounded-xl p-4 text-left border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group"
+            >
+              <span className="text-3xl mb-2 block">{s.emoji}</span>
+              <p className="font-semibold text-gray-800 text-sm">{s.title}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{s.desc}</p>
+            </button>
+          ))}
+        </div>
+
+        {/* Current rates */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-4">
+            <TrendingUp size={15} className="text-[#37B943]" /> Current Market Rates
+          </h2>
+          <div className="divide-y divide-gray-100">
+            {RATES.map((r) => (
+              <div key={r.item} className="flex items-center justify-between py-3">
+                <p className="text-sm text-gray-700 font-medium">{r.item}</p>
+                <div className="text-right">
+                  <p className="text-sm font-bold text-[#37B943]">{r.rate}</p>
+                  <p className="text-xs text-gray-400">{r.unit}</p>
                 </div>
               </div>
-              <div className="max-w-md w-full bg-white shadow-lg rounded-xl p-6 mx-auto my-6 border border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3 text-center">
-                  Current Rates
-                </h3>
-                <ul className="space-y-2 text-gray-700">
-                  <li>Metal (per kg): ₹60 – ₹70</li>
-                  <li>Paper (per kg): ₹20 – ₹30</li>
-                  <li>
-                    Plastic Bottle (per piece): ₹5 – ₹15, depending on the size
-                  </li>
-                </ul>
-                <p className="mt-4 text-sm text-gray-500 text-center">
-                  *Prices are approximate and may vary based on quality and
-                  availability.*
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
+          <p className="text-xs text-gray-400 text-center mt-3">
+            *Prices vary based on quality and market conditions.*
+          </p>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

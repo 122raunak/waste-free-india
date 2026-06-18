@@ -1,137 +1,103 @@
-import React, { useContext, useEffect, useState } from "react";
-import Button from "../../../Components/Button/Button";
-import { Mail, Lock } from "lucide-react";
-import logo from "../../../../public/Logo/logo.png";
-import googlelogo from "../../../../public/UserLogin/google-icon.png";
-import InputField from "../../../Components/Input/InputField";
+import React, { useContext, useState } from "react";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AppContext } from "../../../context/AppContext";
+import AuthLayout from "../../../components/Layout/AuthLayout";
+import googlelogo from "../../../../public/UserLogin/google-icon.png";
 
 const BuyerLogin = () => {
-  const { BuyerIcon, setBuyerIcon } = useContext(AppContext);
-
-  useEffect(() => {
-    console.log("form login page", BuyerIcon);
-    localStorage.setItem("BuyerIcon", BuyerIcon);
-  }, []);
-
-  const [msg, setmsg] = useState("");
-
+  const { setBuyerIcon, setCurrentBuyer } = useContext(AppContext);
   const navigate = useNavigate();
-  const [formData, setfromData] = useState({
-    email: "",
-    password: "",
-  });
-  const handleChange = (e) => {
-    setfromData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [msg, setMsg] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) =>
+    setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const user = {
-      email: formData.email,
-      password: formData.password,
-    };
-    console.log(formData);
+    setLoading(true);
+    setMsg("");
     try {
       const res = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/buyer/auth/login`,
-        user,
-        {
-          withCredentials: true,
-        }
+        formData,
+        { withCredentials: true }
       );
-      console.log(res);
-
-      if (res.status == 201) {
-        console.log(" Login successful, redirecting...");
+      if (res.status === 201) {
         setBuyerIcon(true);
-        navigate("/buyer/profile");
+        setCurrentBuyer(res.data.user);
+        navigate("/buyer/listofwaste");
+      } else {
+        setMsg(res.data.message);
       }
-      setmsg(res.data.message);
-    } catch (error) {}
-    setfromData({
-      email: "",
-      password: "",
-    });
+    } catch {
+      setMsg("Login failed. Check your credentials.");
+    } finally {
+      setLoading(false);
+      setFormData({ email: "", password: "" });
+    }
   };
 
   return (
-    <>
-      {/* Form container */}
-      <div className="flex flex-col items-center justify-center z-20 w-full max-w-md px-4 sm:px-6">
-        {/* Sign In heading */}
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-center">
-          Sign In
-        </h1>
-        <p className="text-sm sm:text-base md:text-lg text-[#6A6A6A] mb-8 text-center">
-          Sign in to your account via email
-        </p>
+    <AuthLayout role="buyer">
+      <h1 className="text-2xl font-bold text-gray-900 mb-1">Partner Login</h1>
+      <p className="text-sm text-gray-500 mb-7">Sign in to your buyer account</p>
 
-        {/* Inputs */}
-        <form onSubmit={handleSubmit} className=" w-full">
-          <InputField
-            type="email"
-            name="email"
-            placeholder="Email"
-            icon={<Mail size={20} />}
-            value={formData.email}
-            onChange={handleChange}
-          />
-          <InputField
-            type="password"
-            name="password"
-            placeholder="Password"
-            icon={<Lock size={20} />}
-            value={formData.password}
-            onChange={handleChange}
-          />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="relative">
+          <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
-            className="bg-[#2196F3] text-white px-4 py-3 rounded text-lg font-semibold w-full mb-2"
-            type="submit"
-            value={"Login - WasteFreeIndia Partner"}
+            type="email" name="email" placeholder="Email address"
+            value={formData.email} onChange={handleChange} required
+            className="w-full h-11 pl-9 pr-4 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-[#2196F3] focus:bg-white transition"
           />
-        </form>
-        <p className="text-red-500">{msg}</p>
-        {/* Sign In button */}
-
-        {/* Divider */}
-        <div className="flex items-center w-full max-w-[350px] my-6">
-          <div className="flex-grow border-t border-gray-300"></div>
-          <span className="mx-3 text-gray-500 text-xs sm:text-sm">
-            Sign in with Social Media
-          </span>
-          <div className="flex-grow border-t border-gray-300"></div>
         </div>
 
-        {/* Google Button */}
-        <div className="bg-white text-black px-4 py-3 rounded  w-full flex justify-center items-center gap-4 border mb-2">
-          <img
-            src={googlelogo}
-            alt="google"
-            className="w-6 h-6 sm:w-6 sm:h-6 object-contain"
+        <div className="relative">
+          <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type={showPw ? "text" : "password"} name="password" placeholder="Password"
+            value={formData.password} onChange={handleChange} required
+            className="w-full h-11 pl-9 pr-10 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-[#2196F3] focus:bg-white transition"
           />
-          <span className="text-xl sm:text-base md:text-lg font-semibold">
-            Sign up with Google
-          </span>
+          <button type="button" onClick={() => setShowPw((v) => !v)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+            {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
         </div>
 
-        {/* Signup link */}
-        <div className="mt-6 text-xs sm:text-sm text-gray-600">
-          Don’t have an account?{" "}
-          <Link
-            to="/buyer/signup"
-            className="text-[#2196F3] font-medium hover:underline cursor-pointer"
-          >
-            Create one
-          </Link>
-        </div>
+        {msg && <p className="text-red-500 text-xs">{msg}</p>}
+
+        <button
+          type="submit" disabled={loading}
+          className="w-full h-11 bg-[#2196F3] hover:bg-[#1976D2] active:scale-[0.98] text-white font-semibold rounded-xl text-sm transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+        >
+          {loading && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+          {loading ? "Signing in..." : "Login as Partner"}
+        </button>
+      </form>
+
+      <div className="flex items-center gap-3 my-5">
+        <div className="flex-1 h-px bg-gray-200" />
+        <span className="text-xs text-gray-400">or</span>
+        <div className="flex-1 h-px bg-gray-200" />
       </div>
-    </>
+
+      <button className="w-full h-11 flex items-center justify-center gap-3 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 transition text-sm font-medium text-gray-700">
+        <img src={googlelogo} alt="Google" className="w-4 h-4" />
+        Continue with Google
+      </button>
+
+      <p className="text-center text-xs text-gray-500 mt-6">
+        Don't have an account?{" "}
+        <Link to="/buyer/signup" className="text-[#2196F3] font-semibold hover:underline">Create one</Link>
+      </p>
+    </AuthLayout>
   );
 };
 

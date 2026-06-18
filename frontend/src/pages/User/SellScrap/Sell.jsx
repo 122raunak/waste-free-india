@@ -1,213 +1,267 @@
 import React, { useRef, useState } from "react";
-import { ChevronDown, Package, Droplet, Cog, Laptop } from "lucide-react";
-import wastebin from "../../../../public/SellingPage/bin.png";
-import InputField from "../../../Components/Input/InputField";
-import Button from "../../../components/Button/Button";
-import Navbar from "../../../components/Navbar/Navbar";
-
+import { ChevronDown, ArrowLeft, ImagePlus, CheckCircle2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import imageCompression from "browser-image-compression";
-import axios from "axios";
+import api from "../../../lib/api";
+
+const CATEGORIES = [
+  { value: "Paper", label: "📦 Paper" },
+  { value: "Plastic", label: "🥤 Plastic" },
+  { value: "Metal", label: "⚙️ Metal" },
+  { value: "E-waste", label: "💻 E-waste" },
+];
 
 function SellScrap() {
-  const [WasteItemImage, setWasteItemImage] = useState(wastebin);
-  const [ImgData, setImgData] = useState(null);
-  const [msg, setmsg] = useState("");
+  const navigate = useNavigate();
+  const fileInputRef = useRef(null);
 
-  const [FormData, setFormData] = useState({
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(null);
+
+  const [form, setForm] = useState({
     title: "",
     category: "",
     description: "",
     quantity: "",
     estimatedPrice: "",
-    images: "",
     weight: "",
+    images: null,
   });
 
   const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log(FormData);
-
-    try {
-      const res = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/Scrap/create`,
-        FormData,
-        {
-          withCredentials: true,
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
-      if (res.status == 201) {
-        setmsg(res.data.message);
-      }
-
-      setFormData({
-        title: "",
-        category: "",
-        description: "",
-        quantity: "",
-        estimatedPrice: "",
-        images: "",
-        weight: "",
-      });
-      setWasteItemImage(wastebin);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const fileInputRef = useRef(null);
-  const handleImageClick = () => {
-    fileInputRef.current?.click();
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const compressed = await imageCompression(file, {
-        maxSizeMB: 1,
-        maxWidthOrHeight: 800,
-      });
-      const imageUrl = URL.createObjectURL(compressed);
-      setWasteItemImage(imageUrl);
-      setImgData(compressed);
-
-      setFormData((prev) => ({
-        ...prev,
-        images: compressed,
-      }));
+    if (!file) return;
+    try {
+      const compressed = await imageCompression(file, { maxSizeMB: 1, maxWidthOrHeight: 800 });
+      setPreviewUrl(URL.createObjectURL(compressed));
+      setForm((prev) => ({ ...prev, images: compressed }));
+    } catch (err) {
+      console.error("Compression failed", err);
     }
   };
-  return (
-    <div className="min-h-[100dvh] w-[90%]  relative overflow-hidden flex justify-center items-center flex-col top-[-70px]   ">
-      {/* Main Content */}
-      <form onSubmit={handleSubmit}>
-        <input
-          type="file"
-          accept="image/*"
-          ref={fileInputRef}
-          onChange={handleImageChange}
-          className="hidden"
-        />
 
-        <div className="relative z-50 pt-[180px]">
-          <div className="flex items-center justify-between gap-8">
-            <div>
-              <div className="flex-shrink-0 bg-white w-38 h-30 md:w-40 md:h-40 rounded-lg border border-black flex items-center justify-center p-4">
-                <img
-                  src={WasteItemImage}
-                  alt="Waste Preview"
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={handleImageClick}
-                className="w-full text-black border font-medium border-black mt-3 rounded-md mb-4"
-              >
-                Upload Image/File
-              </button>
-            </div>
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
 
-            <div className="relative mt-[-100px]">
-              <h2 className="p-2 font-medium">Waste Type:</h2>
-              <div className="relative mt-1">
-                <select
-                  id="waste-type"
-                  name="category"
-                  className="block w-full bg-white rounded-md shadow-sm p-2 pr-10 text-sm appearance-none"
-                  required
-                  value={FormData.category}
-                  onChange={handleChange}
-                >
-                  <option value="">Select Waste Type</option>
-                  <option value="Paper">📦 Paper</option>
-                  <option value="Plastic">🥤 Plastic</option>
-                  <option value="Metal">⚙️ Metal</option>
-                  <option value="E-waste">💻 E-waste</option>
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                  <ChevronDown className="h-4 w-4 text-black-400" />
-                </div>
-              </div>
-            </div>
-          </div>
+    if (!form.images) {
+      setError("Please upload an image of your waste");
+      return;
+    }
 
-          <div className="mt-4">
-            <div className="flex flex-col gap-1 mb-4">
-              <p className="font-medium">Title:</p>
-              <InputField
-                type="text"
-                name="title"
-                placeholder="Enter Title"
-                required
-                value={FormData.title}
-                onChange={handleChange}
-              />
-            </div>
+    setSubmitting(true);
+    try {
+      const data = new FormData();
+      Object.entries(form).forEach(([key, val]) => {
+        if (val !== null && val !== "") data.append(key, val);
+      });
 
-            {/* Description */}
-            <div className="mb-4">
-              <p className="font-medium">Description:</p>
-              <textarea
-                id="description"
-                name="description"
-                className="block w-full rounded-md border p-2 text-sm resize-none bg-white"
-                rows="2"
-                placeholder="Add a description of your waste"
-                required
-                onChange={handleChange}
-                value={FormData.description}
-              />
-            </div>
+      const res = await api.post("/Scrap/create", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
-            <div className=" flex items-cente gap-4">
-              <div className="flex flex-col gap-1 mb-4">
-                <p className="font-medium">Quantity(Optional)</p>
-                <InputField
-                  type="number"
-                  name="quantity"
-                  placeholder="Enter Quantity"
-                  onChange={handleChange}
-                  value={FormData.quantity}
-                />
-              </div>
+      if (res.status === 201) {
+        setSuccess(true);
+        setTimeout(() => {
+          navigate("/user/my-listings");
+        }, 1800);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to create listing. Try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-              <div className="flex flex-col gap-1 mb-4">
-                <p className="font-medium">Estimated Price:</p>
-                <InputField
-                  type="number"
-                  name="estimatedPrice"
-                  placeholder="Enter Estimated Price"
-                  required
-                  onChange={handleChange}
-                  value={FormData.estimatedPrice}
-                />
-              </div>
-            </div>
-            <div className="flex flex-col gap-1 mb-4">
-              <p className="font-medium">Estimated Weight(Optional)</p>
-              <div className=" w-[60%]">
-                <InputField
-                  type="text"
-                  name="weight"
-                  placeholder="Enter Estimated Weight"
-                  onChange={handleChange}
-                  value={FormData.weight}
-                />
-              </div>
-            </div>
-          </div>
-
-          <Button type="submit" text="Sell Waste" />
+  if (success) {
+    return (
+      <div className="min-h-[calc(100dvh-60px)] flex flex-col items-center justify-center px-6 gap-4">
+        <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+          <CheckCircle2 size={36} className="text-green-500" />
         </div>
+        <h2 className="text-xl font-bold text-gray-900">Listing Created!</h2>
+        <p className="text-gray-500 text-sm text-center">Redirecting to your listings...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-[calc(100dvh-60px)] w-full bg-[#f5f5f5] flex flex-col">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 sticky top-0 z-10">
+        <button onClick={() => navigate(-1)} className="p-1 -ml-1 rounded-lg hover:bg-gray-100">
+          <ArrowLeft size={20} className="text-gray-700" />
+        </button>
+        <h1 className="font-bold text-gray-900">List Your Waste</h1>
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+        {/* Image upload */}
+        <div>
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            onChange={handleImageChange}
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className={`w-full h-44 rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center gap-2
+              ${previewUrl ? "border-[#41c45a] p-1" : "border-gray-300 hover:border-[#81E68D] bg-white"}`}
+          >
+            {previewUrl ? (
+              <img src={previewUrl} alt="preview" className="w-full h-full object-cover rounded-lg" />
+            ) : (
+              <>
+                <ImagePlus size={28} className="text-gray-400" />
+                <p className="text-sm text-gray-500 font-medium">Tap to upload image</p>
+                <p className="text-xs text-gray-400">JPG, PNG up to 1MB</p>
+              </>
+            )}
+          </button>
+          {previewUrl && (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="mt-1 text-xs text-[#41c45a] underline w-full text-center"
+            >
+              Change image
+            </button>
+          )}
+        </div>
+
+        {/* Category */}
+        <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-3">
+          <div>
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+              Waste Category *
+            </label>
+            <div className="relative">
+              <select
+                name="category"
+                required
+                value={form.category}
+                onChange={handleChange}
+                className="w-full h-11 bg-gray-50 rounded-lg border border-gray-200 px-3 pr-10 text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-[#81E68D]"
+              >
+                <option value="">Select category</option>
+                {CATEGORIES.map((c) => (
+                  <option key={c.value} value={c.value}>{c.label}</option>
+                ))}
+              </select>
+              <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Title */}
+          <div>
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Title *</label>
+            <input
+              type="text"
+              name="title"
+              required
+              value={form.title}
+              onChange={handleChange}
+              placeholder="e.g. Old newspapers bundle"
+              className="w-full h-11 bg-gray-50 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#81E68D]"
+            />
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Description *</label>
+            <textarea
+              name="description"
+              required
+              value={form.description}
+              onChange={handleChange}
+              rows={3}
+              placeholder="Describe the condition, quantity, and any other details..."
+              className="w-full bg-gray-50 rounded-lg border border-gray-200 px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#81E68D]"
+            />
+          </div>
+        </div>
+
+        {/* Numbers */}
+        <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+                Est. Price (₹) *
+              </label>
+              <input
+                type="number"
+                name="estimatedPrice"
+                required
+                min="0"
+                value={form.estimatedPrice}
+                onChange={handleChange}
+                placeholder="0"
+                className="w-full h-11 bg-gray-50 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#81E68D]"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+                Quantity
+              </label>
+              <input
+                type="number"
+                name="quantity"
+                min="0"
+                value={form.quantity}
+                onChange={handleChange}
+                placeholder="Optional"
+                className="w-full h-11 bg-gray-50 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#81E68D]"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+              Weight (Optional)
+            </label>
+            <input
+              type="text"
+              name="weight"
+              value={form.weight}
+              onChange={handleChange}
+              placeholder="e.g. 5 kg"
+              className="w-full h-11 bg-gray-50 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#81E68D]"
+            />
+          </div>
+        </div>
+
+        {/* Error */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600">
+            {error}
+          </div>
+        )}
+
+        {/* Submit */}
+        <button
+          type="submit"
+          disabled={submitting}
+          className="w-full h-12 bg-[#41c45a] hover:bg-[#36a84c] active:scale-[0.98] text-white font-semibold rounded-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          {submitting ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Listing...
+            </>
+          ) : (
+            "List Waste for Sale"
+          )}
+        </button>
+        <div className="h-2" />
       </form>
-      <p className="mt-2 text-green-600 z-10">{msg}</p>
     </div>
   );
 }

@@ -1,36 +1,35 @@
-// src/Components/ProtectedRoute.js
-import React, { useEffect, useState } from "react";
+import React, { useContext } from "react";
 import { Navigate } from "react-router-dom";
-import axios from "axios";
+import { AppContext } from "../../context/AppContext";
 
+// Protects seller (user) routes
 const ProtectedRoute = ({ children }) => {
-  const [loading, setLoading] = useState(true);
-  const [isAuth, setIsAuth] = useState(false);
+  const { sellerIon, authLoading } = useContext(AppContext);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/user/auth/check`,
-          { withCredentials: true }
-        );
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-[#81E68D] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
-        if (res.status === 200) {
-          setIsAuth(true);
-        } else {
-          setIsAuth(false);
-        }
-      } catch (err) {
-        setIsAuth(false);
-      }
-      setLoading(false);
-    };
-    checkAuth();
-  }, []);
+  return sellerIon ? children : <Navigate to="/user/selection" replace />;
+};
 
-  if (loading) return <div>Loading...</div>;
+// Protects buyer routes
+export const ProtectedBuyerRoute = ({ children }) => {
+  const { BuyerIcon, authLoading } = useContext(AppContext);
 
-  return isAuth ? children : <Navigate to="/user/selection" replace />;
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-[#81E68D] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return BuyerIcon ? children : <Navigate to="/buyer/login" replace />;
 };
 
 export default ProtectedRoute;
