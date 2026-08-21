@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Button from "../../../Components/Button/Button";
-import Navbar from "../../../Components/Navbar/Navbar";
+import Button from "../../../components/Button/Button";
 import WasteGame from "./WasteGame";
 
 const Games = () => {
