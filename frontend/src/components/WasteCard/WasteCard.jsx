@@ -76,8 +76,7 @@ const WasteCard = ({ item, showLearnMore = false, linkTo, onStatusChange }) => {
               </span>
             )}
             {item.estimatedPrice && (
-              <span className="flex items-center gap-1 text-xs font-medium text-green-700 col-span-2">
-                <DollarSign size={12} />
+              <span className="flex items-center gap-1 text-xs font-medium text-green-700 col-span-2"> 
                 ₹{item.estimatedPrice}
               </span>
             )}

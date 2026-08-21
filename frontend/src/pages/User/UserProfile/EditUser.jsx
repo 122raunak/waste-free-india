@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { ArrowLeft, Camera } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -12,18 +12,22 @@ function EditUser() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const panelRef = useRef(null);
+  const debounceRef = useRef(null); // for debouncing address requests
 
   const [profileImage, setProfileImage] = useState(defaultProfile);
   const [ImgData, setImgData] = useState(null);
   const [panelOpen, setPanelOpen] = useState(false);
   const [AddressSeggestion, setAddressSeggestion] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [addressLoading, setAddressLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     FullName: { FirstName: "", LastName: "" },
-    ContactNo: "", Address: "",
+    ContactNo: "",
+    Address: "",
   });
 
+  // Load existing user data
   useEffect(() => {
     const load = async () => {
       try {
@@ -33,7 +37,10 @@ function EditUser() {
         );
         const u = res.data.user;
         setFormData({
-          FullName: { FirstName: u.FullName?.FirstName || "", LastName: u.FullName?.LastName || "" },
+          FullName: {
+            FirstName: u.FullName?.FirstName || "",
+            LastName: u.FullName?.LastName || "",
+          },
           ContactNo: u.ContactNo || "",
           Address: u.Address || "",
         });
@@ -59,15 +66,47 @@ function EditUser() {
     setImgData(compressed);
   };
 
-  const handleAddressChange = async () => {
+  // Debounced address search — waits 800ms after user stops typing
+  // This prevents hitting Nominatim's 1 req/sec rate limit
+  const fetchAddressSuggestions = useCallback(async (value) => {
+    if (!value || value.trim().length < 3) {
+      setAddressSeggestion([]);
+      return;
+    }
+    setAddressLoading(true);
     try {
       const res = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/map/get-suggestion`,
-        { params: { query: formData.Address }, withCredentials: true }
+        { params: { query: value.trim() }, withCredentials: true }
       );
       setAddressSeggestion(res.data.predictions || []);
-    } catch {}
+    } catch {
+      setAddressSeggestion([]);
+    } finally {
+      setAddressLoading(false);
+    }
+  }, []);
+
+  const handleAddressChange = (e) => {
+    const value = e.target.value;
+    handleChange(e);
+    setPanelOpen(true);
+
+    // Clear previous debounce timer
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    // Wait 800ms after user stops typing before calling API
+    debounceRef.current = setTimeout(() => {
+      fetchAddressSuggestions(value);
+    }, 800);
   };
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -95,12 +134,21 @@ function EditUser() {
 
   useGSAP(() => {
     if (!panelRef.current) return;
-    gsap.to(panelRef.current, { height: panelOpen ? "55%" : "0%", padding: panelOpen ? 16 : 0, duration: 0.3 });
+    gsap.to(panelRef.current, {
+      height: panelOpen ? "30%" : "0%",
+      padding: panelOpen ? 10 : 0,
+      duration: 0.3,
+      ease: "power2.out",
+    });
   }, [panelOpen]);
 
   useEffect(() => {
     const handleOutside = (e) => {
-      if (panelRef.current && !panelRef.current.contains(e.target) && e.target.name !== "Address") {
+      if (
+        panelRef.current &&
+        !panelRef.current.contains(e.target) &&
+        e.target.name !== "Address"
+      ) {
         setPanelOpen(false);
       }
     };
@@ -112,7 +160,10 @@ function EditUser() {
     <div className="min-h-[calc(100dvh-60px)] bg-[#f5f5f5]">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 sticky top-0 z-10">
-        <button onClick={() => navigate(-1)} className="p-1 -ml-1 rounded-lg hover:bg-gray-100">
+        <button
+          onClick={() => navigate(-1)}
+          className="p-1 -ml-1 rounded-lg hover:bg-gray-100"
+        >
           <ArrowLeft size={20} className="text-gray-700" />
         </button>
         <h1 className="font-bold text-gray-900">Edit Profile</h1>
@@ -133,41 +184,80 @@ function EditUser() {
               <Camera size={14} />
             </button>
           </div>
-          <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageChange} className="hidden" />
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            onChange={handleImageChange}
+            className="hidden"
+          />
           <p className="text-xs text-gray-400 mt-3">Tap the camera to change photo</p>
         </div>
 
-        {/* Fields */}
+        {/* Personal info fields */}
         <Section title="Personal Info">
           <div className="grid grid-cols-2 gap-3">
-            <Field label="First Name" name="FirstName" value={formData.FullName.FirstName} onChange={handleChange} />
-            <Field label="Last Name" name="LastName" value={formData.FullName.LastName} onChange={handleChange} />
-          </div>
-          <Field label="Contact Number" name="ContactNo" type="tel" value={formData.ContactNo} onChange={handleChange} />
-          <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Address</label>
-            <textarea
-              name="Address"
-              rows={3}
-              value={formData.Address}
-              onChange={(e) => { handleChange(e); handleAddressChange(); }}
-              onClick={() => setPanelOpen(true)}
-              placeholder="Your address"
-              className="w-full bg-gray-50 rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-700 resize-none focus:outline-none focus:ring-2 focus:ring-[#37B943]"
+            <Field
+              label="First Name"
+              name="FirstName"
+              value={formData.FullName.FirstName}
+              onChange={handleChange}
             />
+            <Field
+              label="Last Name"
+              name="LastName"
+              value={formData.FullName.LastName}
+              onChange={handleChange}
+            />
+          </div>
+          <Field
+            label="Contact Number"
+            name="ContactNo"
+            type="tel"
+            value={formData.ContactNo}
+            onChange={handleChange}
+          />
+
+          {/* Address */}
+          <div>
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+              Address
+            </label>
+            <div className="relative">
+              <textarea
+                name="Address"
+                rows={3}
+                value={formData.Address}
+                onChange={handleAddressChange}
+                onClick={() => setPanelOpen(true)}
+                placeholder="Start typing your address..."
+                className="w-full bg-gray-50 rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-700 resize-none focus:outline-none focus:ring-2 focus:ring-[#37B943]"
+              />
+              {addressLoading && (
+                <div className="absolute right-3 top-3">
+                  <div className="w-4 h-4 border-2 border-[#37B943] border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-gray-400 mt-1">
+              Type at least 3 characters to see suggestions
+            </p>
           </div>
         </Section>
 
         <button
-          type="submit" disabled={saving}
+          type="submit"
+          disabled={saving}
           className="w-full h-12 bg-[#37B943] hover:bg-[#2ea038] text-white font-semibold rounded-xl transition-all disabled:opacity-60 flex items-center justify-center gap-2"
         >
-          {saving && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+          {saving && (
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          )}
           {saving ? "Saving..." : "Save Changes"}
         </button>
       </form>
 
-      {/* Address panel */}
+      {/* Address suggestions panel — slides up from bottom */}
       <div
         ref={panelRef}
         className="bg-white w-full fixed bottom-0 left-0 z-50 h-0 overflow-hidden shadow-2xl rounded-t-2xl"
@@ -191,9 +281,15 @@ const Section = ({ title, children }) => (
 
 const Field = ({ label, name, type = "text", value, onChange, disabled }) => (
   <div>
-    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">{label}</label>
+    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+      {label}
+    </label>
     <input
-      type={type} name={name} value={value || ""} onChange={onChange} disabled={disabled}
+      type={type}
+      name={name}
+      value={value || ""}
+      onChange={onChange}
+      disabled={disabled}
       className="w-full h-11 bg-gray-50 rounded-xl border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#37B943] disabled:opacity-60 disabled:cursor-not-allowed"
     />
   </div>

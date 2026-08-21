@@ -75,6 +75,7 @@ const getMyListings = async (req, res) => {
         status: item.status,
         createdAt: item.createdAt,
         image: imageBase64,
+        finalPrice: item.finalPrice,
         assignedBuyer: item.assignedBuyer
           ? {
               _id: item.assignedBuyer._id,

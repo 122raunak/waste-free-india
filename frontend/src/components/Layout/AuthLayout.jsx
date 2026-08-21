@@ -1,4 +1,6 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 /**
  * Shared auth shell.
@@ -10,6 +12,7 @@ import React from "react";
  *   children  the form JSX
  */
 const AuthLayout = ({ children, role = "user" }) => {
+  const navigate = useNavigate();
   const isUser = role === "user";
 
   const stats = isUser
@@ -62,15 +65,32 @@ const AuthLayout = ({ children, role = "user" }) => {
       </div>
 
       {/* ── Right form panel ── */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-10 md:px-14 bg-white min-h-screen md:min-h-0">
-        {/* mobile logo */}
+      <div className="flex-1 flex flex-col px-6 py-8 md:px-14 bg-white min-h-screen md:min-h-0">
+
+        {/* ── Back to home button — top left of form panel ── */}
+        <div className="mb-6">
+          <button
+            onClick={() => navigate("/")}
+            className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 transition-colors group"
+          >
+            <span className="w-8 h-8 rounded-full bg-gray-100 group-hover:bg-gray-200 flex items-center justify-center transition-colors">
+              <ArrowLeft size={15} />
+            </span>
+            <span>Back to home</span>
+          </button>
+        </div>
+
+        {/* mobile logo — shown below the back button on small screens */}
         <div className="flex flex-col items-center mb-6 md:hidden">
           <div className="text-4xl mb-2">♻️</div>
           <p className="text-xs text-gray-400 tracking-widest uppercase">WasteFreeIndia</p>
         </div>
 
-        <div className="w-full max-w-sm">
-          {children}
+        {/* form content — centred in remaining space */}
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-full max-w-sm">
+            {children}
+          </div>
         </div>
       </div>
     </div>

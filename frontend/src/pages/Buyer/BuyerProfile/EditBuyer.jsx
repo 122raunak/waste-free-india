@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { ArrowLeft, Camera } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -14,21 +14,27 @@ function EditBuyer() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const panelRef = useRef(null);
+  const debounceRef = useRef(null);
 
   const [profileImage, setProfileImage] = useState(defaultProfile);
   const [ImgData, setImgData] = useState(null);
   const [panelOpen, setPanelOpen] = useState(false);
   const [AddressSeggestion, setAddressSeggestion] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [addressLoading, setAddressLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     FullName: { FirstName: "", LastName: "" },
-    email: "", ContactNo: "", BusinessName: "",
-    Address: "", ServiceArea: "",
+    email: "",
+    ContactNo: "",
+    BusinessName: "",
+    Address: "",
+    ServiceArea: "",
     WasteCategories: [],
     BankDetails: { accountNumber: "", ifsc: "", upiId: "" },
   });
 
+  // Load existing buyer data
   useEffect(() => {
     const load = async () => {
       try {
@@ -37,14 +43,21 @@ function EditBuyer() {
           { withCredentials: true }
         );
         const b = res.data.buyer;
+
         let profileImg = defaultProfile;
         if (b.profileImg?.data) {
           const binary = new Uint8Array(b.profileImg.data);
-          profileImg = `data:image/jpeg;base64,${btoa(binary.reduce((a, c) => a + String.fromCharCode(c), ""))}`;
+          profileImg = `data:image/jpeg;base64,${btoa(
+            binary.reduce((a, c) => a + String.fromCharCode(c), "")
+          )}`;
           setProfileImage(profileImg);
         }
+
         setFormData({
-          FullName: { FirstName: b.FullName?.FirstName || "", LastName: b.FullName?.LastName || "" },
+          FullName: {
+            FirstName: b.FullName?.FirstName || "",
+            LastName: b.FullName?.LastName || "",
+          },
           email: b.email || "",
           ContactNo: b.ContactNo || "",
           BusinessName: b.BusinessName || "",
@@ -86,15 +99,39 @@ function EditBuyer() {
     setImgData(compressed);
   };
 
-  const handleAddressChange = async () => {
+  // Debounced address search — 800ms delay to avoid Nominatim 429 rate limit
+  const fetchAddressSuggestions = useCallback(async (value) => {
+    if (!value || value.trim().length < 3) {
+      setAddressSeggestion([]);
+      return;
+    }
+    setAddressLoading(true);
     try {
       const res = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/map/get-suggestion`,
-        { params: { query: formData.Address }, withCredentials: true }
+        { params: { query: value.trim() }, withCredentials: true }
       );
       setAddressSeggestion(res.data.predictions || []);
-    } catch {}
+    } catch {
+      setAddressSeggestion([]);
+    } finally {
+      setAddressLoading(false);
+    }
+  }, []);
+
+  const handleAddressChange = (e) => {
+    const value = e.target.value;
+    handleChange(e);
+    setPanelOpen(true);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      fetchAddressSuggestions(value);
+    }, 800);
   };
+
+  useEffect(() => {
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -128,12 +165,21 @@ function EditBuyer() {
 
   useGSAP(() => {
     if (!panelRef.current) return;
-    gsap.to(panelRef.current, { height: panelOpen ? "50%" : "0%", padding: panelOpen ? 16 : 0, duration: 0.3 });
+    gsap.to(panelRef.current, {
+      height: panelOpen ? "30%" : "0%",
+      padding: panelOpen ? 10 : 0,
+      duration: 0.3,
+      ease: "power2.out",
+    });
   }, [panelOpen]);
 
   useEffect(() => {
     const handleOutside = (e) => {
-      if (panelRef.current && !panelRef.current.contains(e.target) && e.target.name !== "Address") {
+      if (
+        panelRef.current &&
+        !panelRef.current.contains(e.target) &&
+        e.target.name !== "Address"
+      ) {
         setPanelOpen(false);
       }
     };
@@ -152,18 +198,23 @@ function EditBuyer() {
       </div>
 
       <form onSubmit={handleSubmit} className="max-w-xl mx-auto px-4 py-6 space-y-4 pb-10">
+
         {/* Avatar */}
         <div className="flex flex-col items-center mb-2">
           <div className="relative">
             <div className="w-24 h-24 rounded-2xl overflow-hidden border-4 border-white shadow-md bg-gray-200">
               <img src={profileImage} alt="profile" className="w-full h-full object-cover" />
             </div>
-            <button type="button" onClick={() => fileInputRef.current?.click()}
-              className="absolute -bottom-2 -right-2 w-8 h-8 bg-[#2196F3] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#1976D2] transition">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute -bottom-2 -right-2 w-8 h-8 bg-[#2196F3] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#1976D2] transition"
+            >
               <Camera size={14} />
             </button>
           </div>
           <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageChange} className="hidden" />
+          <p className="text-xs text-gray-400 mt-3">Tap the camera to change photo</p>
         </div>
 
         {/* Personal */}
@@ -180,28 +231,54 @@ function EditBuyer() {
         <Section title="Business Info">
           <Field label="Business Name" name="BusinessName" value={formData.BusinessName} onChange={handleChange} accent="blue" />
           <Field label="Service Area" name="ServiceArea" value={formData.ServiceArea} onChange={handleChange} accent="blue" />
+
+          {/* Address with autocomplete */}
           <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Address</label>
-            <textarea
-              name="Address" rows={3} value={formData.Address}
-              onChange={(e) => { handleChange(e); handleAddressChange(); }}
-              onClick={() => setPanelOpen(true)}
-              placeholder="Your business address"
-              className="w-full bg-gray-50 rounded-xl border border-gray-200 px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#2196F3]"
-            />
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+              Address
+            </label>
+            <div className="relative">
+              <textarea
+                name="Address"
+                rows={3}
+                value={formData.Address}
+                onChange={handleAddressChange}
+                onClick={() => setPanelOpen(true)}
+                placeholder="Start typing your address..."
+                className="w-full bg-gray-50 rounded-xl border border-gray-200 px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#2196F3]"
+              />
+              {addressLoading && (
+                <div className="absolute right-3 top-3">
+                  <div className="w-4 h-4 border-2 border-[#2196F3] border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-gray-400 mt-1">Type at least 3 characters to see suggestions</p>
           </div>
 
           {/* Waste categories */}
           <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Waste Categories</label>
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">
+              Waste Categories
+            </label>
             <div className="flex flex-wrap gap-2">
               {WASTE_CATS.map((cat) => (
-                <label key={cat} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-sm cursor-pointer transition
-                  ${formData.WasteCategories.includes(cat)
-                    ? "bg-[#2196F3] text-white border-[#2196F3]"
-                    : "bg-white text-gray-600 border-gray-200 hover:border-[#2196F3]"}`}>
-                  <input type="checkbox" name="WasteCategories" value={cat}
-                    checked={formData.WasteCategories.includes(cat)} onChange={handleChange} className="hidden" />
+                <label
+                  key={cat}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-sm cursor-pointer transition
+                    ${formData.WasteCategories.includes(cat)
+                      ? "bg-[#2196F3] text-white border-[#2196F3]"
+                      : "bg-white text-gray-600 border-gray-200 hover:border-[#2196F3]"
+                    }`}
+                >
+                  <input
+                    type="checkbox"
+                    name="WasteCategories"
+                    value={cat}
+                    checked={formData.WasteCategories.includes(cat)}
+                    onChange={handleChange}
+                    className="hidden"
+                  />
                   {cat}
                 </label>
               ))}
@@ -216,16 +293,21 @@ function EditBuyer() {
           <Field label="UPI ID" name="BankDetails.upiId" value={formData.BankDetails.upiId} onChange={handleChange} accent="blue" />
         </Section>
 
-        <button type="submit" disabled={saving}
-          className="w-full h-12 bg-[#2196F3] hover:bg-[#1976D2] text-white font-semibold rounded-xl transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+        <button
+          type="submit"
+          disabled={saving}
+          className="w-full h-12 bg-[#2196F3] hover:bg-[#1976D2] text-white font-semibold rounded-xl transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+        >
           {saving && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
           {saving ? "Saving..." : "Save Changes"}
         </button>
       </form>
 
-      {/* Address suggestion panel */}
-      <div ref={panelRef}
-        className="bg-white w-full fixed bottom-0 left-0 z-50 h-0 overflow-hidden shadow-2xl rounded-t-2xl">
+      {/* Address suggestions panel */}
+      <div
+        ref={panelRef}
+        className="bg-white w-full fixed bottom-0 left-0 z-50 h-0 overflow-hidden shadow-2xl rounded-t-2xl"
+      >
         <LocationSearchpanel
           AddressSeggestion={AddressSeggestion}
           setFormData={setFormData}
@@ -246,7 +328,8 @@ const Section = ({ title, children }) => (
 const Field = ({ label, name, type = "text", value, onChange, disabled, accent = "green" }) => (
   <div>
     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">{label}</label>
-    <input type={type} name={name} value={value || ""} onChange={onChange} disabled={disabled}
+    <input
+      type={type} name={name} value={value || ""} onChange={onChange} disabled={disabled}
       className={`w-full h-11 bg-gray-50 rounded-xl border border-gray-200 px-3 text-sm focus:outline-none
         ${accent === "blue" ? "focus:ring-2 focus:ring-[#2196F3]" : "focus:ring-2 focus:ring-[#37B943]"}
         disabled:opacity-60 disabled:cursor-not-allowed`}

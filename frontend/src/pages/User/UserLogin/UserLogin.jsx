@@ -7,7 +7,8 @@ import AuthLayout from "../../../components/Layout/AuthLayout";
 import googlelogo from "../../../../public/UserLogin/google-icon.png";
 
 const UserLogin = () => {
-  const { setsellerIon, setCurrentUser } = useContext(AppContext);
+  // Pull BOTH role setters — we need to clear buyer state when logging in as seller
+  const { setsellerIon, setBuyerIcon, setCurrentUser, setCurrentBuyer } = useContext(AppContext);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -29,8 +30,17 @@ const UserLogin = () => {
         { withCredentials: true }
       );
       if (res.status === 201) {
+        // ── THE FIX ──────────────────────────────────────────
+        // Logging in as a SELLER must clear any leftover BUYER state.
+        // Without this, switching accounts in the same browser leaves
+        // both role flags "true" and the Navbar shows every icon.
         setsellerIon(true);
+        setBuyerIcon(false);
         setCurrentUser(res.data.user);
+        setCurrentBuyer(null);
+        localStorage.removeItem("BuyerIcon");
+        // ─────────────────────────────────────────────────────
+
         navigate("/user/home");
       } else {
         setMsg(res.data.message);
@@ -44,7 +54,10 @@ const UserLogin = () => {
   };
 
   const handleGoogleLogin = () => {
+    // Same fix applies before redirecting to Google OAuth
     setsellerIon(true);
+    setBuyerIcon(false);
+    localStorage.removeItem("BuyerIcon");
     window.location.href = `${import.meta.env.VITE_BACKEND_URL}/user/auth/google`;
   };
 
@@ -54,7 +67,6 @@ const UserLogin = () => {
       <p className="text-sm text-gray-500 mb-7">Sign in to your seller account</p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Email */}
         <div className="relative">
           <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
@@ -68,7 +80,6 @@ const UserLogin = () => {
           />
         </div>
 
-        {/* Password */}
         <div className="relative">
           <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
@@ -101,14 +112,12 @@ const UserLogin = () => {
         </button>
       </form>
 
-      {/* Divider */}
       <div className="flex items-center gap-3 my-5">
         <div className="flex-1 h-px bg-gray-200" />
         <span className="text-xs text-gray-400">or</span>
         <div className="flex-1 h-px bg-gray-200" />
       </div>
 
-      {/* Google */}
       <button
         onClick={handleGoogleLogin}
         className="w-full h-11 flex items-center justify-center gap-3 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 transition text-sm font-medium text-gray-700"

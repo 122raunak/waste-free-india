@@ -7,7 +7,8 @@ import AuthLayout from "../../../components/Layout/AuthLayout";
 import googlelogo from "../../../../public/UserLogin/google-icon.png";
 
 const BuyerLogin = () => {
-  const { setBuyerIcon, setCurrentBuyer } = useContext(AppContext);
+  // Pull BOTH role setters — we need to clear seller state when logging in as buyer
+  const { setBuyerIcon, setsellerIon, setCurrentBuyer, setCurrentUser } = useContext(AppContext);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -29,8 +30,18 @@ const BuyerLogin = () => {
         { withCredentials: true }
       );
       if (res.status === 201) {
+        // ── THE FIX ──────────────────────────────────────────
+        // Logging in as a BUYER must clear any leftover SELLER state.
+        // Without this, switching accounts in the same browser leaves
+        // both role flags "true" and the Navbar shows every icon
+        // (Sell + Listings AND Browse + Accepted at once).
         setBuyerIcon(true);
+        setsellerIon(false);
         setCurrentBuyer(res.data.user);
+        setCurrentUser(null);
+        localStorage.removeItem("sellerIon");
+        // ─────────────────────────────────────────────────────
+
         navigate("/buyer/listofwaste");
       } else {
         setMsg(res.data.message);
