@@ -21,7 +21,7 @@ import MyListings from "./pages/User/MyListings/MyListings";
 import UserProfile from "./pages/User/UserProfile/UserProfile";
 import EditUser from "./pages/User/UserProfile/EditUser";
 import Games from "./pages/User/Games/Games";
-import RecyclingPoints from "./pages/User/recycling/RecyclingPonts";
+import RecyclingPoints from "./pages/User/recycling/recyclingPonts";
 import RecyclingWaste from "./pages/User/recycling/RecyclingWaste";
 import LeaderBord from "./pages/User/LeaderBord/LeaderBord";
 import Logout from "./pages/User/LogOut/Logout";
